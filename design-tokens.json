@@ -1,0 +1,62 @@
+{
+  "$description": "Verbox — carnet d’exploration, version 1.0",
+  "color": {
+    "canvas": "#f8f9f5",
+    "surface": "#ffffff",
+    "surface-soft": "#edf2e8",
+    "surface-warm": "#faf7ed",
+    "ink": "#263e36",
+    "muted": "#62705b",
+    "subtle": "#788569",
+    "border": "#dfe5d9",
+    "border-strong": "#879679",
+    "brand": "#265545",
+    "brand-hover": "#1d4437",
+    "on-brand": "#ffffff",
+    "on-brand-muted": "#d0ddcf",
+    "accent": "#b9552f",
+    "accent-hover": "#9d4222",
+    "accent-soft": "#fbeddf",
+    "gold": "#e5cb81",
+    "gold-ink": "#856517",
+    "gold-soft": "#fcf4d6",
+    "success": "#456a35",
+    "success-soft": "#e4efda",
+    "error": "#a34530",
+    "error-soft": "#faeee3",
+    "sage": "#617f3f",
+    "sage-soft": "#edf2e3",
+    "lavender": "#7b639f",
+    "lavender-soft": "#f0eafa",
+    "blue": "#487698",
+    "blue-soft": "#e5eff7",
+    "pink": "#985d7a",
+    "pink-soft": "#f7e7ee",
+    "focus": "#265545"
+  },
+  "font": {
+    "body": "'DM Sans', 'Segoe UI', sans-serif",
+    "heading": "'Manrope', 'Segoe UI', sans-serif"
+  },
+  "font-size": {
+    "caption": "0.75rem",
+    "small": "0.875rem",
+    "body": "1rem",
+    "subtitle": "1.125rem",
+    "section": "1.25rem",
+    "title": "1.75rem",
+    "display": "2rem",
+    "question": "2.25rem"
+  },
+  "space": { "1": "4px", "2": "8px", "3": "12px", "4": "16px", "5": "20px", "6": "24px", "8": "32px", "10": "40px", "12": "48px", "16": "64px" },
+  "radius": { "xs": "8px", "sm": "12px", "md": "16px", "lg": "20px", "xl": "24px", "pill": "999px" },
+  "shadow": {
+    "card": "0 6px 20px rgb(38 62 54 / 6%)",
+    "selected": "0 0 0 2px rgb(69 106 53 / 12%)",
+    "button": "0 3px 0 #8e3b20",
+    "dialog": "0 24px 80px rgb(23 45 42 / 25%)"
+  },
+  "motion": { "fast": "150ms", "normal": "200ms", "ease": "cubic-bezier(0.2, 0, 0, 1)" },
+  "size": { "touch": "44px", "content": "1320px" },
+  "breakpoint": { "compact": "380px", "mobile": "700px", "tablet": "1020px", "desktop": "1200px", "wide": "1500px" }
+}
