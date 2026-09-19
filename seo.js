@@ -14,6 +14,7 @@ export function metadata(route, config, production=false) {
  const canonical=origin?`${origin}${route.path}`:'';
  const graph=origin?[{'@type':'WebSite','@id':`${origin}/#website`,url:`${origin}/`,name:'Verbox',inLanguage:'fr-FR'}, {'@type':'WebPage','@id':`${canonical}#webpage`,url:canonical,name:route.title,description:route.description,inLanguage:'fr-FR',isPartOf:{'@id':`${origin}/#website`}}]:[];
  if(origin&&route.page==='lecon')graph.push({'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'Accueil',item:`${origin}/`},{'@type':'ListItem',position:2,name:'Fiches de conjugaison',item:`${origin}/fiches/`},{'@type':'ListItem',position:3,name:route.title.split(' | ')[0],item:`${origin}${lessonPath(route.tense)}`} ]});
+ if(origin&&['conjugaison','verbe'].includes(route.page))graph.push({'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'Accueil',item:`${origin}/`},{'@type':'ListItem',position:2,name:'Conjugaison',item:`${origin}/conjugaison/`},...(route.verb?[{'@type':'ListItem',position:3,name:route.verb,item:canonical}]:[])]});
  if(origin&&(route.level||['aide','apropos','mentions'].includes(route.page)))graph.push({'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'Accueil',item:`${origin}/`},{'@type':'ListItem',position:2,name:route.title.split(' | ')[0],item:canonical}]});
  return `<title>${escapeHtml(route.title)}</title>
   <meta name="description" content="${escapeHtml(route.description)}">
@@ -37,7 +38,8 @@ export function renderPage(template,route,config,production=false) {
  const audience=audienceConfig(config);
  const clientConfig=production&&audience ? {...audience,pageUrl:route.noindex?null:publicOrigin(config.siteUrl,true)+route.path,pageTitle:route.title} : null;
  template=template.replace('<!-- AUDIENCE_CONFIG -->',`<script type="application/json" id="audience-config">${JSON.stringify(clientConfig).replace(/</g,'\\u003c')}</script>`);
- if(['404','confidentialite','apropos','mentions'].includes(route.page))template=template.replace(/<script type="module" src="\/app.js"><\/script>/,'').replace('class="nav-item active"','class="nav-item"');
+ if(['404','confidentialite','apropos','mentions','conjugaison','verbe'].includes(route.page))template=template.replace(/<script type="module" src="\/app.js"><\/script>/,'').replace('class="nav-item active"','class="nav-item"');
+ if(route.page==='conjugaison'||route.page==='verbe')template=template.replace('id="page-label">Mon entraînement','id="page-label">Conjugaison');
  if(route.page==='apropos'||route.page==='mentions')template=template.replace('id="page-label">Mon entraînement',`id="page-label">${route.page==='apropos'?'À propos':'Mentions légales'}`);
  if(route.page==='confidentialite')template=template.replace('id="page-label">Mon entraînement','id="page-label">Confidentialité');
  return template.replace(/<!-- SEO_START -->[\s\S]*?<!-- SEO_END -->/,`<!-- SEO_START -->${metadata(route,config,production)}<!-- SEO_END -->`)
