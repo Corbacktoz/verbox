@@ -1,6 +1,7 @@
 // One-time migration of the original layout stylesheet onto the shared tokens.
 // Re-running is safe: existing custom properties are left intact.
 import { readFile, writeFile } from 'node:fs/promises';
+import { indentCss } from './indent-css.mjs';
 const root = new URL('../', import.meta.url);
 const tokens = JSON.parse(await readFile(new URL('design-tokens.json', root), 'utf8'));
 const file = new URL('styles.css', root);
@@ -37,8 +38,7 @@ css=css.replace(/border-radius:\s*(8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23
 const importEnd=css.indexOf('\n');
 const header=css.slice(0,importEnd);
 const body=css.slice(importEnd).replace(/\s*([{};])\s*/g,'$1\n').split('\n');
-let depth=0;
-const formatted=body.map(line=>{const content=line.trim();if(content.startsWith('}'))depth--;const result='  '.repeat(Math.max(depth,0))+content;if(content.endsWith('{'))depth++;return result;}).join('\n');
+const formatted=indentCss(body.join('\n'));
 await writeFile(file,`${header}\n\n${formatted}\n`);
 let app=await readFile(new URL('app.js',root),'utf8');
 app=app.replace('style="font-size:15px;color:#a9b19c;font-weight:500"','class="goal-denominator"').replace('class="primary-button" data-page="accueil" style="margin-top:20px"','class="primary-button spaced-action" data-page="accueil"').replace('class="secondary-button" style="margin-top:18px"','class="secondary-button spaced-action"');

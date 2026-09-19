@@ -65,7 +65,7 @@ Les couleurs sont nommées par rôle. Pour un nouveau composant, utiliser un rô
 | Grand titre | `font-size-display` | 32 px |
 | Verbe de l’exercice | `font-size-question` | 36 px |
 
-Manrope donne des titres arrondis ; DM Sans sert les textes et les contrôles. Segoe UI et les polices système assurent le repli. Le site peut charger les deux familles depuis Google Fonts ; l’atelier autonome n’en fait pas la requête. Les informations essentielles ne descendent pas sous 12 px. Les libellés peuvent revenir à la ligne.
+Manrope donne des titres arrondis ; DM Sans sert les textes et les contrôles. Segoe UI et les polices système assurent le repli. Les familles nommées utilisent les polices disponibles localement, puis les polices système ; aucune police externe n’est téléchargée. Les informations essentielles ne descendent pas sous 12 px. Les libellés peuvent revenir à la ligne.
 
 ## Espacement, formes et mouvement
 
