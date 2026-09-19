@@ -2,5 +2,15 @@
   "name": "Verbox",
   "siteUrl": "https://verbox.fr",
   "googleSiteVerification": "",
-  "bingSiteVerification": ""
+  "bingSiteVerification": "",
+  "privacy": {
+    "editorName": "",
+    "contactEmail": "corback.inc@gmail.com"
+  },
+  "audience": {
+    "enabled": false,
+    "matomoUrl": "",
+    "siteId": "",
+    "cnilConfigurationVerified": false
+  }
 }

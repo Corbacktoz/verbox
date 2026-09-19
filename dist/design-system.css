@@ -121,3 +121,39 @@ dialog { box-shadow: var(--shadow-dialog); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
 }
+
+/* Discovery, missions and written exercises share the existing design tokens. */
+.journey-card, .discovery-card { padding: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); margin-bottom: var(--space-5); }
+.journey-card { margin-top: var(--space-5); }
+.journey-stops { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); list-style: none; padding: 0; gap: var(--space-3); margin: var(--space-4) 0; }
+.journey-stops li { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); padding: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-size: var(--font-size-small); }
+.journey-stops li > span { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--color-surface-soft); color: var(--color-brand); font-weight: 700; }
+.journey-stops .done { background: var(--color-success-soft); }
+.journey-stops .current { border: 2px solid var(--color-brand); }
+.journey-stops small, .journey-note, .discovery-card p, .exercise-picker p { color: var(--color-muted); font-size: var(--font-size-small); line-height: 1.6; }
+.journey-card > p { margin: var(--space-3) 0; }
+.discovery-card h2 { font-size: var(--font-size-subtitle); margin-bottom: var(--space-3); }
+.discovery-card p { margin: var(--space-3) 0; }
+.discovery-card button { margin-top: var(--space-3); width: 100%; }
+.mix-toggle { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-4); min-height: var(--size-touch); font-size: var(--font-size-small); }
+.mix-toggle input { width: 22px; height: 22px; accent-color: var(--color-brand); }
+.exercise-picker { margin-top: var(--space-5); }
+.exercise-picker label, #written-form label { display: block; font-weight: 700; margin-bottom: var(--space-3); }
+.exercise-picker select, #written-answer { width: 100%; min-width: 0; min-height: var(--size-touch); border: 1px solid var(--color-border-strong); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-ink); padding: var(--space-3); font: inherit; }
+.exercise-picker p { margin-top: var(--space-2); }
+.context-sentence { font-size: var(--font-size-section); line-height: 1.7; text-align: center; margin: var(--space-4) 0; overflow-wrap: anywhere; }
+#written-answer { font-size: var(--font-size-section); }
+#written-answer:focus-visible, .mix-toggle input:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+#writing-help, #answer-hint { font-size: var(--font-size-small); color: var(--color-muted); margin: var(--space-3) 0; }
+.accent-keys, .writing-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: var(--space-3) 0; }
+.accent-keys button { min-width: var(--size-touch); min-height: var(--size-touch); border: 1px solid var(--color-border-strong); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-ink); font-size: var(--font-size-body); }
+.writing-actions { justify-content: space-between; align-items: center; }
+.milestone-message { padding: var(--space-3); background: var(--color-success-soft); border-radius: var(--radius-sm); color: var(--color-success); }
+.quiz-header small { display: block; line-height: 1.6; }
+@media (max-width: 540px) {
+ .journey-stops { grid-template-columns: repeat(2,minmax(0,1fr)); }
+ .journey-card, .discovery-card { padding: var(--space-4); }
+ .journey-card .section-title { align-items: flex-start; gap: var(--space-2); flex-wrap: wrap; }
+ .quiz-status { flex-wrap: wrap; gap: var(--space-2); }
+ .context-sentence { font-size: var(--font-size-subtitle); }
+}

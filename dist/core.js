@@ -21,6 +21,20 @@ export const verbs = [
   { infinitive:'faire', participle:'fait', present:forms('fais|fais|fait|faisons|faites|font'), imparfait:forms('faisais|faisais|faisait|faisions|faisiez|faisaient'), futur:forms('ferai|feras|fera|ferons|ferez|feront'), simple:forms('fis|fis|fit|fîmes|fîtes|firent') },
   { infinitive:'dire', participle:'dit', present:forms('dis|dis|dit|disons|dites|disent'), imparfait:forms('disais|disais|disait|disions|disiez|disaient'), futur:forms('dirai|diras|dira|dirons|direz|diront'), simple:forms('dis|dis|dit|dîmes|dîtes|dirent') }
 ];
+// These verbs use avoir in the compound tenses taught by this version.
+verbs.push(...['regarder','écouter','trouver','chercher','donner','porter','préparer','raconter','demander','travailler','marcher','danser','sauter','visiter','aider','penser','compter','montrer','garder'].map(v=>regular(v,v.slice(0,-2)+'é')));
+for(const infinitive of ['choisir','réussir','grandir','remplir','réfléchir']){
+ const base=infinitive.slice(0,-2);
+ verbs.push({infinitive,participle:base+'i',present:['is','is','it','issons','issez','issent'].map(x=>base+x),imparfait:['issais','issais','issait','issions','issiez','issaient'].map(x=>base+x),futur:['ai','as','a','ons','ez','ont'].map(x=>infinitive+x),simple:['is','is','it','îmes','îtes','irent'].map(x=>base+x)});
+}
+verbs.push(
+ {infinitive:'voir',participle:'vu',present:forms('vois|vois|voit|voyons|voyez|voient'),imparfait:forms('voyais|voyais|voyait|voyions|voyiez|voyaient'),futur:forms('verrai|verras|verra|verrons|verrez|verront'),simple:forms('vis|vis|vit|vîmes|vîtes|virent')},
+ {infinitive:'vouloir',participle:'voulu',present:forms('veux|veux|veut|voulons|voulez|veulent'),imparfait:forms('voulais|voulais|voulait|voulions|vouliez|voulaient'),futur:forms('voudrai|voudras|voudra|voudrons|voudrez|voudront'),simple:forms('voulus|voulus|voulut|voulûmes|voulûtes|voulurent')},
+ {infinitive:'pouvoir',participle:'pu',present:forms('peux|peux|peut|pouvons|pouvez|peuvent'),imparfait:forms('pouvais|pouvais|pouvait|pouvions|pouviez|pouvaient'),futur:forms('pourrai|pourras|pourra|pourrons|pourrez|pourront'),simple:forms('pus|pus|put|pûmes|pûtes|purent')},
+ {infinitive:'savoir',participle:'su',present:forms('sais|sais|sait|savons|savez|savent'),imparfait:forms('savais|savais|savait|savions|saviez|savaient'),futur:forms('saurai|sauras|saura|saurons|saurez|sauront'),simple:forms('sus|sus|sut|sûmes|sûtes|surent')},
+ {infinitive:'lire',participle:'lu',present:forms('lis|lis|lit|lisons|lisez|lisent'),imparfait:forms('lisais|lisais|lisait|lisions|lisiez|lisaient'),futur:forms('lirai|liras|lira|lirons|lirez|liront'),simple:forms('lus|lus|lut|lûmes|lûtes|lurent')}
+);
+export function allowedVerbs(level) { return level==='CE2'?verbs.filter(v=>v.infinitive.endsWith('er')||['être','avoir'].includes(v.infinitive)):verbs; }
 for (const verb of verbs) {
   verb.compose = forms('ai|as|a|avons|avez|ont').map(a => `${a} ${verb.participle}`);
   verb.parfait = forms('avais|avais|avait|avions|aviez|avaient').map(a => `${a} ${verb.participle}`);
@@ -32,7 +46,7 @@ export function shuffle(items, random = Math.random) {
   return copy;
 }
 export function makeQuestions(level, tense, count=10) {
-  const allowed = level === 'CE2' ? verbs.slice(0,7) : verbs;
+  const allowed = allowedVerbs(level);
   const pool = allowed.flatMap(verb => persons.map((person,index) => ({ verb, person, index })));
   return shuffle(pool).slice(0,count).map(({verb,person,index}) => {
     const answer = verb[tense][index];
