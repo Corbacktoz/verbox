@@ -103,3 +103,7 @@ Les routes `/a-propos/` (indexable) et `/mentions-legales/` (noindex) sont ajout
 Les trois pages de niveau ont une introduction et une méthode distinctes. Le contenu est évalué sur ses informations utiles, sans quota de mots. Les listes de verbes proviennent de `allowedVerbs(level)` ; les exemples et corrections sont testés contre les données. Une relecture pédagogique reste nécessaire avant publication.
 
 Le hub et les dix pages de verbes sont indexables dans le build de production, avec canoniques, fil d’Ariane et sitemap dérivés des routes. Le titre promet six temps, pas tous les temps. Les liens depuis les niveaux ne pointent que vers les fiches existantes. L’extension aux trente autres verbes attend le retour d’indexation du propriétaire. Aucun nouveau traceur ni événement n’a été ajouté.
+
+## Contrôles des routes
+
+Toutes les routes restent accessibles en trois clics au plus depuis l’accueil. Le sitemap exclut explicitement progrès, confidentialité, mentions légales et 404. Un champ optionnel `updated` accepte une date réelle au format AAAA-MM-JJ ; aucune route ne reçoit automatiquement la date du build. Deux builds successifs sont comparés octet par octet. Les variantes `index.html` sont listées dans `_redirects`, mais ce fichier ne crée pas de redirection sur GitHub Pages : les canoniques HTML restent essentielles. IndexNow n’est pas activé.
