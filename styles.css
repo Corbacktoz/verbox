@@ -796,7 +796,7 @@ main{
 .privacy-note{
   margin-top:var(--space-5);
   font-size:var(--font-size-caption)!important;
-  color:var(--color-subtle)!important}
+  color:var(--color-muted)!important}
 .storage-warning{
   padding:var(--space-3);
   background:var(--color-gold-soft);

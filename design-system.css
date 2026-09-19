@@ -15,8 +15,8 @@
 button, a, summary { -webkit-tap-highlight-color: transparent; }
 button, select { min-height: var(--size-touch); }
 .level-button { min-height: var(--size-touch); }
-a.nav-item, a.help-button, a.footer-help, a.secondary-button, a.primary-button { min-height: var(--size-touch); }
-a.secondary-button { display: inline-flex; align-items: center; }
+a.nav-item, a.help-button, a.footer-help, .page-footer a, a.secondary-button, a.primary-button { min-height: var(--size-touch); }
+a.secondary-button, .page-footer a { display: inline-flex; align-items: center; }
 .public-links { display: flex; flex-wrap: wrap; gap: var(--space-3); margin: var(--space-4) 0; }
 .seo-guide { margin-top: var(--space-8); }
 .seo-guide h3 { margin: var(--space-5) 0 var(--space-2); font-size: var(--font-size-body); }
@@ -57,6 +57,7 @@ button { font-family: var(--font-body); }
 .lesson p, .lesson-bottom, .mode small, .section-title .step,
 .greeting p, .page-intro, .content-panel p, .history-row small,
 .date-label, .help-button, .sidebar-footer, .sidebar-note p,
+.sidebar-label, .points-pill, .help-list,
 .breadcrumb, .level-button, .badge-item, .page-footer,
 .privacy-note, .goal-message, .daily-card > p, .daily-bottom,
 .tip-card p, .tip-card .eyebrow, .goal-ring small, .session-meta,
