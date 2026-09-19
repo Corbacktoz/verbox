@@ -28,7 +28,7 @@ export function renderProject(page, config = {}) {
       <p>Choisis ton niveau et le temps que tu veux travailler. Le mode entraînement te laisse réfléchir sans limite de temps. Les fiches permettent de retrouver une règle et des exemples, même sans activer JavaScript.</p>
       <p>Les parents et les enseignants peuvent utiliser ces activités en complément d’une leçon. Les niveaux correspondent à des sélections d’entraînement ; ils ne constituent pas une couverture exhaustive des programmes scolaires.</p>
       <h2>Ce que tu peux travailler</h2>
-      <p>La sélection comprend des verbes courants au présent, à l’imparfait et au futur. Le passé composé s’ajoute en CM1 ; le passé simple et le plus-que-parfait en CM2. Les temps composés proposés utilisent avoir. Les constructions avec être et les règles complètes d’accord du participe passé ne sont pas travaillées ici.</p>
+      <p>La sélection comprend des verbes courants au présent, à l’imparfait et au futur. Le passé composé s’ajoute en CM1 ; le passé simple et le plus-que-parfait en CM2. Les temps composés proposés utilisent principalement avoir, ainsi que être pour les verbes de déplacement courants (aller, venir, partir).</p>
       <h2>Sans compte ni publicité</h2>
       <p>Tu peux jouer sans donner ton nom ni ton âge. Tes progrès sont enregistrés dans le navigateur de cet appareil et ne sont pas synchronisés avec un autre appareil. La <a href="/confidentialite/">page de confidentialité</a> explique séparément le fonctionnement des statistiques du site.</p>
       <h2>Nous aider à corriger une erreur</h2>

@@ -11,6 +11,14 @@ test('Toutes les conjugaisons contiennent six personnes pour chaque temps', () =
  assert.equal(verbs.find(v=>v.infinitive==='être').futur[0],'serai');
  assert.equal(verbs.find(v=>v.infinitive==='prendre').compose[3],'avons pris');
  assert.equal(verbs.find(v=>v.infinitive==='dire').parfait[5],'avaient dit');
+ assert.equal(verbs.find(v=>v.infinitive==='manger').present[3],'mangeons');
+ assert.equal(verbs.find(v=>v.infinitive==='commencer').imparfait[0],'commençais');
+ assert.equal(verbs.find(v=>v.infinitive==='nettoyer').present[0],'nettoie');
+ assert.equal(verbs.find(v=>v.infinitive==='envoyer').futur[0],'enverrai');
+ assert.equal(verbs.find(v=>v.infinitive==='mettre').present[2],'met');
+ assert.equal(verbs.find(v=>v.infinitive==='aller').compose[3],'sommes allés');
+ assert.equal(verbs.find(v=>v.infinitive==='venir').simple[2],'vint');
+ assert.equal(verbs.find(v=>v.infinitive==='partir').parfait[0],'étais parti');
 });
 test('Chaque série propose dix questions distinctes et quatre choix dont une seule bonne réponse',()=>{
  for(const [level,allowed] of Object.entries(levelTenses)) for(const tense of allowed) for(let n=0;n<20;n++) {

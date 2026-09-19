@@ -3,9 +3,9 @@ export const tenses = {
   present: { name: 'Le présent', subtitle: 'Ce qui se passe maintenant', color: 'sage', icon: 'sun', example: 'Je joue dans le jardin.', tip: 'Au présent, les verbes en -er prennent : -e, -es, -e, -ons, -ez, -ent.' },
   imparfait: { name: 'L’imparfait', subtitle: 'Les habitudes d’autrefois', color: 'peach', icon: 'rewind', example: 'Je jouais dans le jardin.', tip: 'À l’imparfait, les terminaisons sont : -ais, -ais, -ait, -ions, -iez, -aient.' },
   futur: { name: 'Le futur', subtitle: 'Ce qui se passera demain', color: 'lavender', icon: 'arrow', example: 'Je jouerai dans le jardin.', tip: 'Au futur, les terminaisons sont : -ai, -as, -a, -ons, -ez, -ont. Pour les verbes en -er, on les ajoute à l’infinitif.' },
-  compose: { name: 'Le passé composé', subtitle: 'Les actions déjà terminées', color: 'yellow', icon: 'check', example: 'J’ai joué dans le jardin.', tip: 'Le passé composé se construit avec avoir ou être au présent, suivi du participe passé. Ici, on s’entraîne avec avoir.' },
+  compose: { name: 'Le passé composé', subtitle: 'Les actions déjà terminées', color: 'yellow', icon: 'check', example: 'J’ai joué dans le jardin.', tip: 'Le passé composé se construit avec avoir ou être au présent, suivi du participe passé.' },
   simple: { name: 'Le passé simple', subtitle: 'Le temps des récits', color: 'blue', icon: 'book', example: 'Il joua dans le jardin.', tip: 'Dans les récits, on rencontre souvent le passé simple à la 3e personne : il joua, ils jouèrent ; il finit, ils finirent.' },
-  parfait: { name: 'Le plus-que-parfait', subtitle: 'Avant une autre action passée', color: 'pink', icon: 'history', example: 'J’avais joué avant de dîner.', tip: 'Le plus-que-parfait se construit avec avoir ou être à l’imparfait, suivi du participe passé. Ici, on s’entraîne avec avoir.' }
+  parfait: { name: 'Le plus-que-parfait', subtitle: 'Avant une autre action passée', color: 'pink', icon: 'history', example: 'J’avais joué avant de dîner.', tip: 'Le plus-que-parfait se construit avec avoir ou être à l’imparfait, suivi du participe passé.' }
 };
 const forms = s => s.split('|');
 function regular(infinitive, participle) {
@@ -32,12 +32,26 @@ verbs.push(
  {infinitive:'vouloir',participle:'voulu',present:forms('veux|veux|veut|voulons|voulez|veulent'),imparfait:forms('voulais|voulais|voulait|voulions|vouliez|voulaient'),futur:forms('voudrai|voudras|voudra|voudrons|voudrez|voudront'),simple:forms('voulus|voulus|voulut|voulûmes|voulûtes|voulurent')},
  {infinitive:'pouvoir',participle:'pu',present:forms('peux|peux|peut|pouvons|pouvez|peuvent'),imparfait:forms('pouvais|pouvais|pouvait|pouvions|pouviez|pouvaient'),futur:forms('pourrai|pourras|pourra|pourrons|pourrez|pourront'),simple:forms('pus|pus|put|pûmes|pûtes|purent')},
  {infinitive:'savoir',participle:'su',present:forms('sais|sais|sait|savons|savez|savent'),imparfait:forms('savais|savais|savait|savions|saviez|savaient'),futur:forms('saurai|sauras|saura|saurons|saurez|sauront'),simple:forms('sus|sus|sut|sûmes|sûtes|surent')},
- {infinitive:'lire',participle:'lu',present:forms('lis|lis|lit|lisons|lisez|lisent'),imparfait:forms('lisais|lisais|lisait|lisions|lisiez|lisaient'),futur:forms('lirai|liras|lira|lirons|lirez|liront'),simple:forms('lus|lus|lut|lûmes|lûtes|lurent')}
+  {infinitive:'lire',participle:'lu',present:forms('lis|lis|lit|lisons|lisez|lisent'),imparfait:forms('lisais|lisais|lisait|lisions|lisiez|lisaient'),futur:forms('lirai|liras|lira|lirons|lirez|liront'),simple:forms('lus|lus|lut|lûmes|lûtes|lurent')},
+  {infinitive:'manger',participle:'mangé',present:forms('mange|manges|mange|mangeons|mangez|mangent'),imparfait:forms('mangeais|mangeais|mangeait|mangions|mangiez|mangeaient'),futur:forms('mangerai|mangeras|mangera|mangerons|mangerez|mangeront'),simple:forms('mangeai|mangeas|mangea|mangeâmes|mangeâtes|mangèrent')},
+  {infinitive:'commencer',participle:'commencé',present:forms('commence|commences|commence|commençons|commencez|commencent'),imparfait:forms('commençais|commençais|commençait|commencions|commenciez|commençaient'),futur:forms('commencerai|commenceras|commencera|commencerons|commencerez|commenceront'),simple:forms('commençai|commenças|commença|commençâmes|commençâtes|commencèrent')},
+  {infinitive:'nettoyer',participle:'nettoyé',present:forms('nettoie|nettoies|nettoie|nettoyons|nettoyez|nettoient'),imparfait:forms('nettoyais|nettoyais|nettoyait|nettoyions|nettoyiez|nettoyaient'),futur:forms('nettoierai|nettoieras|nettoiera|nettoierons|nettoierez|nettoieront'),simple:forms('nettoyai|nettoyas|nettoya|nettoyâmes|nettoyâtes|nettoyèrent')},
+  {infinitive:'envoyer',participle:'envoyé',present:forms('envoie|envoies|envoie|envoyons|envoyez|envoient'),imparfait:forms('envoyais|envoyais|envoyait|envoyions|envoyiez|envoyaient'),futur:forms('enverrai|enverras|enverra|enverrons|enverrez|enverront'),simple:forms('envoyai|envoyas|envoya|envoyâmes|envoyâtes|envoyèrent')},
+  {infinitive:'mettre',participle:'mis',present:forms('mets|mets|met|mettons|mettez|mettent'),imparfait:forms('mettais|mettais|mettait|mettions|mettiez|mettaient'),futur:forms('mettrai|mettras|mettra|mettrons|mettrez|mettront'),simple:forms('mis|mis|mit|mîmes|mîtes|mirent')},
+  {infinitive:'aller',participle:'allé',auxiliary:'être',present:forms('vais|vas|va|allons|allez|vont'),imparfait:forms('allais|allais|allait|allions|alliez|allaient'),futur:forms('irai|iras|ira|irons|irez|iront'),simple:forms('allai|allas|alla|allâmes|allâtes|allèrent')},
+  {infinitive:'venir',participle:'venu',auxiliary:'être',present:forms('viens|viens|vient|venons|venez|viennent'),imparfait:forms('venais|venais|venait|venions|veniez|venaient'),futur:forms('viendrai|viendras|viendra|viendrons|viendrez|viendront'),simple:forms('vins|vins|vint|vînmes|vîntes|vinrent')},
+  {infinitive:'partir',participle:'parti',auxiliary:'être',present:forms('pars|pars|part|partons|partez|partent'),imparfait:forms('partais|partais|partait|partions|partiez|partaient'),futur:forms('partirai|partiras|partira|partirons|partirez|partiront'),simple:forms('partis|partis|partit|partîmes|partîtes|partirent')}
 );
 export function allowedVerbs(level) { return level==='CE2'?verbs.filter(v=>v.infinitive.endsWith('er')||['être','avoir'].includes(v.infinitive)):verbs; }
 for (const verb of verbs) {
-  verb.compose = forms('ai|as|a|avons|avez|ont').map(a => `${a} ${verb.participle}`);
-  verb.parfait = forms('avais|avais|avait|avions|aviez|avaient').map(a => `${a} ${verb.participle}`);
+  if (verb.auxiliary === 'être') {
+    const parts = [verb.participle, verb.participle, verb.participle, verb.participle + 's', verb.participle + 's', verb.participle + 's'];
+    verb.compose = forms('suis|es|est|sommes|êtes|sont').map((a, i) => `${a} ${parts[i]}`);
+    verb.parfait = forms('étais|étais|était|étions|étiez|étaient').map((a, i) => `${a} ${parts[i]}`);
+  } else {
+    verb.compose = forms('ai|as|a|avons|avez|ont').map(a => `${a} ${verb.participle}`);
+    verb.parfait = forms('avais|avais|avait|avions|aviez|avaient').map(a => `${a} ${verb.participle}`);
+  }
 }
 export const levelTenses = { CE2:['present','imparfait','futur'], CM1:['present','imparfait','futur','compose'], CM2:Object.keys(tenses) };
 export function shuffle(items, random = Math.random) {

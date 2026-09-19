@@ -4,9 +4,9 @@ import {verbs} from './core.js';
 import {questionPool,makeSession,recordAnswer,sanitizeLearning,isCorrect,learningStats,journey,dailyMission,formats} from './learning.js';
 const now=1800000000000,day=86400000;
 const random=()=>0.37;
-test('40 verbes, 468 / 960 / 1440 conjugaisons et phrases complètes',()=>{
- assert.equal(verbs.length,40);
- for(const [level,count]of [['CE2',468],['CM1',960],['CM2',1440]]){
+test('48 verbes, 558 / 1152 / 1728 conjugaisons et phrases complètes',()=>{
+ assert.equal(verbs.length,48);
+ for(const [level,count]of [['CE2',558],['CM1',1152],['CM2',1728]]){
   const pool=questionPool(level);assert.equal(pool.length,count);assert.equal(new Set(pool.map(q=>q.id)).size,count);
   assert.ok(pool.every(q=>q.complement&&q.answer));
  }
@@ -14,6 +14,14 @@ test('40 verbes, 468 / 960 / 1440 conjugaisons et phrases complètes',()=>{
  assert.equal(verbs.find(v=>v.infinitive==='réfléchir').present[3],'réfléchissons');
  assert.equal(verbs.find(v=>v.infinitive==='vouloir').simple[4],'voulûtes');
  assert.equal(verbs.find(v=>v.infinitive==='lire').compose[0],'ai lu');
+ assert.equal(verbs.find(v=>v.infinitive==='manger').present[3],'mangeons');
+ assert.equal(verbs.find(v=>v.infinitive==='commencer').present[3],'commençons');
+ assert.equal(verbs.find(v=>v.infinitive==='nettoyer').present[0],'nettoie');
+ assert.equal(verbs.find(v=>v.infinitive==='envoyer').futur[0],'enverrai');
+ assert.equal(verbs.find(v=>v.infinitive==='mettre').present[2],'met');
+ assert.equal(verbs.find(v=>v.infinitive==='aller').compose[3],'sommes allés');
+ assert.equal(verbs.find(v=>v.infinitive==='venir').simple[2],'vint');
+ assert.equal(verbs.find(v=>v.infinitive==='partir').compose[0],'suis parti');
 });
 test('Chaque format conserve une réponse unique et une erreur réellement incorrecte',()=>{
  for(const level of ['CE2','CM1','CM2'])for(const format of ['mixed',...Object.keys(formats)]){
