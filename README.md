@@ -90,3 +90,5 @@ Les pages `/a-propos/` et `/mentions-legales/` présentent le projet, le contact
 Les pages CE2, CM1 et CM2 présentent leur sélection réelle de verbes par groupe, leurs temps, des exemples et trois erreurs expliquées. Ces guides restent accessibles avant JavaScript et accompagnent les exercices.
 
 Le hub `/conjugaison/` donne accès aux dix premières fiches : avoir, chanter, dire, être, faire, finir, jouer, pouvoir, prendre et voir. Leurs slugs sont sans accents. Les six tableaux sont générés depuis `core.js`, avec des exemples distincts et des liens vers un niveau proposant réellement le temps. Voir `CONTENT-REVIEW.md` pour la relecture attendue.
+
+Les mesures mobiles locales avant/après sont détaillées dans `SEO.md` et `PERFORMANCE-MEASUREMENTS.json`. Elles ne constituent pas une validation des Core Web Vitals en production.

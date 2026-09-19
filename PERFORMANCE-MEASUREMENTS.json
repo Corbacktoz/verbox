@@ -1,0 +1,137 @@
+{
+  "notes": "One local mobile simulation per page and stage. Baseline 47eaa6d, updated a29e085. Static HTTP servers, no compression, localhost audience disabled by origin check. Not field measurements and no INP measured.",
+  "results": [
+    {
+      "page": "home",
+      "stage": "before",
+      "url": "http://localhost:5181/",
+      "date": "2026-09-19T17:38:12.656Z",
+      "lighthouseVersion": "12.8.2",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "formFactor": "mobile",
+      "throttlingMethod": "simulate",
+      "throttling": {
+        "rttMs": 150,
+        "throughputKbps": 1638.4,
+        "requestLatencyMs": 562.5,
+        "downloadThroughputKbps": 1474.5600000000002,
+        "uploadThroughputKbps": 675,
+        "cpuSlowdownMultiplier": 4
+      },
+      "performance": 0.73,
+      "lcpMs": 4395.6314999999995,
+      "tbtMs": 0,
+      "cls": 0
+    },
+    {
+      "page": "home",
+      "stage": "after",
+      "url": "http://localhost:5182/",
+      "date": "2026-09-19T17:45:20.370Z",
+      "lighthouseVersion": "12.8.2",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "formFactor": "mobile",
+      "throttlingMethod": "simulate",
+      "throttling": {
+        "rttMs": 150,
+        "throughputKbps": 1638.4,
+        "requestLatencyMs": 562.5,
+        "downloadThroughputKbps": 1474.5600000000002,
+        "uploadThroughputKbps": 675,
+        "cpuSlowdownMultiplier": 4
+      },
+      "performance": 0.98,
+      "lcpMs": 2085.75725,
+      "tbtMs": 10.5,
+      "cls": 0
+    },
+    {
+      "page": "ce2",
+      "stage": "before",
+      "url": "http://localhost:5181/conjugaison-ce2/",
+      "date": "2026-09-19T17:38:38.018Z",
+      "lighthouseVersion": "12.8.2",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "formFactor": "mobile",
+      "throttlingMethod": "simulate",
+      "throttling": {
+        "rttMs": 150,
+        "throughputKbps": 1638.4,
+        "requestLatencyMs": 562.5,
+        "downloadThroughputKbps": 1474.5600000000002,
+        "uploadThroughputKbps": 675,
+        "cpuSlowdownMultiplier": 4
+      },
+      "performance": 0.74,
+      "lcpMs": 4388.6799,
+      "tbtMs": 0,
+      "cls": 0
+    },
+    {
+      "page": "ce2",
+      "stage": "after",
+      "url": "http://localhost:5182/conjugaison-ce2/",
+      "date": "2026-09-19T17:45:46.058Z",
+      "lighthouseVersion": "12.8.2",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "formFactor": "mobile",
+      "throttlingMethod": "simulate",
+      "throttling": {
+        "rttMs": 150,
+        "throughputKbps": 1638.4,
+        "requestLatencyMs": 562.5,
+        "downloadThroughputKbps": 1474.5600000000002,
+        "uploadThroughputKbps": 675,
+        "cpuSlowdownMultiplier": 4
+      },
+      "performance": 0.98,
+      "lcpMs": 2078.958,
+      "tbtMs": 15,
+      "cls": 0
+    },
+    {
+      "page": "present",
+      "stage": "before",
+      "url": "http://localhost:5181/fiches/le-present/",
+      "date": "2026-09-19T17:39:03.792Z",
+      "lighthouseVersion": "12.8.2",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "formFactor": "mobile",
+      "throttlingMethod": "simulate",
+      "throttling": {
+        "rttMs": 150,
+        "throughputKbps": 1638.4,
+        "requestLatencyMs": 562.5,
+        "downloadThroughputKbps": 1474.5600000000002,
+        "uploadThroughputKbps": 675,
+        "cpuSlowdownMultiplier": 4
+      },
+      "performance": 0.75,
+      "lcpMs": 4378.2872,
+      "tbtMs": 0,
+      "cls": 0
+    },
+    {
+      "page": "present",
+      "stage": "after",
+      "url": "http://localhost:5182/fiches/le-present/",
+      "date": "2026-09-19T17:46:12.069Z",
+      "lighthouseVersion": "12.8.2",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "formFactor": "mobile",
+      "throttlingMethod": "simulate",
+      "throttling": {
+        "rttMs": 150,
+        "throughputKbps": 1638.4,
+        "requestLatencyMs": 562.5,
+        "downloadThroughputKbps": 1474.5600000000002,
+        "uploadThroughputKbps": 675,
+        "cpuSlowdownMultiplier": 4
+      },
+      "performance": 0.98,
+      "lcpMs": 2090.118,
+      "tbtMs": 0,
+      "cls": 0
+    }
+  ]
+}
