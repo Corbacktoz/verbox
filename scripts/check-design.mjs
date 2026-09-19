@@ -9,6 +9,8 @@ const boundaryContrast=(luminance(tokens.color.surface)+.05)/(luminance(tokens.c
 assert.ok(boundaryContrast>=3,'Interactive boundaries must reach 3:1 on the surface');
 console.log(`Interactive boundary: ${boundaryContrast.toFixed(2)}:1`);
 const styles=await readFile(new URL('styles.css',root),'utf8');
+assert.ok(Buffer.byteLength(styles, 'utf8') < 80000, 'Layout CSS must stay below 80 KB');
+assert.ok(!/^[ \t]{9}/m.test(styles), 'Layout indentation must not exceed eight spaces');
 assert.equal((styles.match(/#[\da-f]{3,8}\b/gi)||[]).length,0,'Layout colors must use tokens');
 const generated=await readFile(new URL('design-tokens.css',root),'utf8');
 for(const [group,values]of Object.entries(tokens)){if(group.startsWith('$')||group==='breakpoint')continue;for(const [key,value]of Object.entries(values))assert.ok(generated.includes(`--${group}-${key}: ${value};`));}

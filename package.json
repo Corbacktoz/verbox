@@ -3,12 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js",
     "build": "node scripts/build-design.mjs && node scripts/build-site.mjs",
     "seo:check": "node seo.test.js",
-    "test": "node core.test.js && node learning.test.js && node audience.test.js",
+    "test": "node core.test.js && node learning.test.js && node audience.test.js && node scripts/indent-css.test.mjs",
     "design:build": "node scripts/build-design.mjs",
     "design:check": "node scripts/check-design.mjs"
   }

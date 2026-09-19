@@ -4,7 +4,7 @@ Site éducatif de conjugaison en français, adapté aux ordinateurs et aux mobil
 
 ## Lancer le site
 
-Avec Node.js installé :
+Avec Node.js 22 ou supérieur installé (Node 24 en CI) :
 
 ```sh
 npm run dev
@@ -68,7 +68,7 @@ Sans nom de domaine configuré, le build de production refuse de générer des U
 
 L’aperçu `npm run dev` reste en `noindex`, même si un domaine est configuré. Une exploitation avec le serveur Node exige `NODE_ENV=production` et un reverse proxy HTTPS ; le serveur écoute sur 127.0.0.1. Pour un hébergement statique, utiliser le dossier `dist/` et vérifier la gestion des redirections et des réponses 404 de l’hébergeur. Les fichiers `_headers` et `_redirects` sont fournis pour les plateformes qui les interprètent ; les adapter ailleurs.
 
-Voir `SEO.md` pour l’audit, les URL prévues et les étapes Search Console / Bing. Les polices Google Fonts sont facultatives : des polices système prennent le relais en cas d’indisponibilité.
+Voir `SEO.md` pour l’audit, les URL prévues et les étapes Search Console / Bing. Les polices système sont utilisées sans requête vers Google Fonts.
 
 ## Système de design
 
@@ -80,3 +80,7 @@ Après une modification des tokens ou des composants :
 npm run design:build
 npm run design:check
 ```
+
+## Hygiène du build — 19 septembre 2026
+
+`dist/` est généré et ignoré par Git. Une copie propre des sources suffit : `npm run build` crée le dossier publié par GitHub Actions. Le formatage CSS ne change que les espaces en début de ligne ; les sélecteurs et les valeurs restent identiques. Le contrôle de design limite la feuille à 80 Ko et l’indentation à huit espaces.

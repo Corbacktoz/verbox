@@ -91,3 +91,9 @@ npm run seo:check
 Les tests SEO couvrent les titres uniques, les canoniques, les directives d’indexation, les liens internes, le JSON-LD, le sitemap, les en-têtes et codes HTTP, les redirections, les dimensions de l’image sociale et un build statique complet en dossier temporaire. Les URL réservées en `.example` ne sont utilisées que dans les tests et ne sont pas enregistrées dans la configuration du site.
 
 Les contrôles locaux établissent la préparation technique. Le domaine est configuré dans le projet ; son raccordement à l’hébergement, HTTPS, l’indexation effective et le positionnement restent à vérifier après publication. Prévoir des redirections permanentes de `http://verbox.fr` et des variantes `www` vers `https://verbox.fr`.
+
+## Maintenance du 19 septembre 2026
+
+Sur la base `47eaa6d`, la feuille CSS passe de 523 331 à 37 543 octets (fichiers de travail Windows), sans modification autre que l’indentation initiale des lignes. Le formateur compte désormais les accolades fermantes en fin de déclaration et ignore celles des chaînes et commentaires. Une comparaison conservant tous les espaces internes et les retours à la ligne vérifie cette propriété. `dist/` est reconstruit en CI, sans copie suivie dans Git.
+
+Le nombre de tests de l’ancien audit était périmé : avant ces travaux, 21 tests fonctionnels et d’audience et 7 tests SEO passent sur cette base. Les performances réseau et l’indexation ne se déduisent pas de la seule taille du CSS.
