@@ -84,3 +84,5 @@ npm run design:check
 ## Hygiène du build — 19 septembre 2026
 
 `dist/` est généré et ignoré par Git. Une copie propre des sources suffit : `npm run build` crée le dossier publié par GitHub Actions. Le formatage CSS ne change que les espaces en début de ligne ; les sélecteurs et les valeurs restent identiques. Le contrôle de design limite la feuille à 80 Ko et l’indentation à huit espaces.
+
+Les pages `/a-propos/` et `/mentions-legales/` présentent le projet, le contact et l’hébergement. Elles restent lisibles sans JavaScript. L’adresse de GitHub est configurable dans `privacy.hostAddress`.

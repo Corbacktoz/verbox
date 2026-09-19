@@ -39,3 +39,7 @@ L’exemption de consentement repose sur **la finalité et la configuration effe
 - [Confidentialité de l’hébergeur GitHub](https://docs.github.com/fr/site-policy/privacy-policies/github-general-privacy-statement)
 
 La désactivation du code Google n’efface pas les données déjà collectées dans GA4. Examiner leur suppression et les durées de conservation depuis le compte Google Analytics. Aucun compte Google n’est supprimé par cette modification.
+
+## Textes à faire valider par le propriétaire
+
+Les pages À propos et Mentions légales utilisent l’identité et le contact déjà configurés. Le propriétaire a confié le choix de l’adresse de l’hébergeur : `privacy.hostAddress` reprend celle publiée par GitHub, Inc., dans sa [déclaration officielle](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement), consultée le 19 septembre 2026. Ces textes restent à valider selon le statut réel de l’éditeur ; ils ne constituent pas une attestation de conformité LCEN ou RGPD. La page des mentions est en noindex, hors sitemap et sans mesure d’audience ; À propos suit la politique des pages publiques.

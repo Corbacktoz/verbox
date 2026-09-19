@@ -97,3 +97,5 @@ Les contrôles locaux établissent la préparation technique. Le domaine est con
 Sur la base `47eaa6d`, la feuille CSS passe de 523 331 à 37 543 octets (fichiers de travail Windows), sans modification autre que l’indentation initiale des lignes. Le formateur compte désormais les accolades fermantes en fin de déclaration et ignore celles des chaînes et commentaires. Une comparaison conservant tous les espaces internes et les retours à la ligne vérifie cette propriété. `dist/` est reconstruit en CI, sans copie suivie dans Git.
 
 Le nombre de tests de l’ancien audit était périmé : avant ces travaux, 21 tests fonctionnels et d’audience et 7 tests SEO passent sur cette base. Les performances réseau et l’indexation ne se déduisent pas de la seule taille du CSS.
+
+Les routes `/a-propos/` (indexable) et `/mentions-legales/` (noindex) sont ajoutées. Les attentes de taille du sitemap sont désormais calculées à partir des routes ; le nombre historique de douze pages ci-dessus décrit l’audit initial.
