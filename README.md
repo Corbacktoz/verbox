@@ -17,7 +17,12 @@ Ouvrir http://localhost:5173. Le serveur local n’écoute que sur cet ordinateu
 - CE2 : présent, imparfait, futur ; verbes en -er, être et avoir.
 - CM1 : ajout de verbes fréquents et du passé composé avec avoir.
 - CM2 : ajout du passé simple et du plus-que-parfait avec avoir.
-- Séries de dix questions à choix multiples, corrections immédiates et fiches mémo.
+- 40 verbes et 1 440 combinaisons verbe / temps / personne au total : 468 accessibles en CE2, 960 en CM1, 1 440 en CM2 (les niveaux partagent leur contenu).
+- Séries de dix questions : QCM, conjugaison écrite, phrase à compléter et erreur à corriger, au choix ou mélangés.
+- Nouveautés prioritaires et jusqu’à trois révisions par série tant que de nouvelles conjugaisons restent ; mode dédié aux révisions et mélange des temps.
+- Révisions prévues après 1, 3, 7, 14 et 30 jours de réussite successive ; les erreurs reviennent dès une prochaine séance. Une fois les nouveautés épuisées, les questions les moins récemment vues complètent les séries.
+- Carnet de découvertes, mission quotidienne et six étapes de voyage par niveau, sans obligation de jouer plusieurs jours consécutifs.
+- Saisie avec touches accentuées et indice facultatif ; casse et espaces tolérés, accents exigés.
 - Entraînement sans limite de temps ou défi de 90 secondes.
 - Dix points par réponse juste, quinze à partir de la troisième bonne réponse consécutive.
 - Objectif quotidien de 100 points, historique et trois trophées.
@@ -25,6 +30,10 @@ Ouvrir http://localhost:5173. Le serveur local n’écoute que sur cet ordinateu
 - Navigation clavier, dialogues accessibles, adaptation aux petits écrans et aux préférences de réduction des animations.
 
 Les activités constituent un entraînement ciblé, pas une couverture exhaustive des programmes scolaires. Les temps composés de cette version utilisent exclusivement l’auxiliaire avoir et n’incluent pas d’exercice d’accord du participe passé.
+
+Les anciens points et résultats sont conservés. Le suivi question par question commence avec les nouvelles séances, dans la même sauvegarde locale. Il est enregistré à la fin d’une série (y compris à la fin du chrono), jamais pour une série abandonnée. « Consolidée » signifie trois réponses justes de suite à une conjugaison ; ce repère n’est pas une évaluation scolaire. Les étapes déjà acquises restent validées après une erreur ultérieure.
+
+La variété et le parcours visent à renouveler l’entraînement. Aucune durée de motivation n’est garantie ; elle dépend de l’enfant et des usages.
 
 ## Vérifier
 

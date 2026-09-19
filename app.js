@@ -1,5 +1,7 @@
 import { homeGuide, renderContent, levelPath } from './site-content.js';
-import { tenses, verbs, persons, levelTenses, makeQuestions, scoreAnswer, localDate, phrase } from './core.js';
+import { tenses, verbs, persons, levelTenses, scoreAnswer, localDate, phrase } from './core.js';
+import {formats,sanitizeLearning,makeSession,recordAnswer,isCorrect,learningStats,journey,dailyMission} from './learning.js';
+const escapeHTML=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 const paths = {
  grid:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
@@ -32,11 +34,15 @@ let saved;
 try { saved = JSON.parse(localStorage.getItem(KEY) || localStorage.getItem('conjugo-progress-v1') || 'null'); } catch { storageAvailable = false; }
 const initial = { points:0, sessions:[], daily:{}, level:'CE2' };
 let state = saved && typeof saved === 'object' && Number.isFinite(saved.points) && saved.points >= 0 && Array.isArray(saved.sessions) && saved.daily && typeof saved.daily === 'object' ? saved : initial;
-state.sessions = state.sessions.filter(s => s && levelTenses[s.level] && tenses[s.tense] && Number.isFinite(s.correct) && Number.isFinite(s.points) && Number.isFinite(s.answered) && typeof s.date === 'string');
+state.sessions = state.sessions.filter(s => s && levelTenses[s.level] && (tenses[s.tense] || s.tense==='mixed') && Number.isFinite(s.correct) && Number.isFinite(s.points) && Number.isFinite(s.answered) && typeof s.date === 'string' && Number.isFinite(Date.parse(s.date)));
+state.sessions=state.sessions.map(s=>({...s,formats:Array.isArray(s.formats)?s.formats.filter(f=>formats[f]):['choice'],formatCounts:Object.fromEntries(Object.keys(formats).map(f=>[f,Number.isFinite(s.formatCounts?.[f])?Math.max(0,Math.min(10,s.formatCounts[f])):0]))}));
+state.learning=sanitizeLearning(saved?.learning);
 let level = levelTenses[document.body.dataset.level] ? document.body.dataset.level : levelTenses[state.level] ? state.level : 'CE2';
 const requestedTense = new URLSearchParams(location.search).get('temps');
 let selected = levelTenses[level].includes(requestedTense) ? requestedTense : 'present';
 let mode = 'practice';
+let exerciseFormat='mixed';
+let mixTenses=false;
 let page = document.body.dataset.page || 'accueil';
 let quiz = null;
 let timer = null;
@@ -62,29 +68,46 @@ const art = `<svg class="hero-art" viewBox="0 0 270 245" aria-hidden="true">
  </svg>`;
 function renderHome() {
  const daily=todayPoints();
+ const stats=learningStats(level,state.learning),mission=dailyMission(level,state.sessions);
  main.innerHTML=`${!storageAvailable?'<p class="storage-warning">La sauvegarde est indisponible dans ce navigateur. Tu peux jouer, mais tes progrès ne seront pas conservés après fermeture.</p>':''}
  <div class="greeting"><div><h1>${document.body.dataset.level ? `Conjugaison ${level}` : 'À toi de conjuguer !'} <span class="wave">👋</span></h1><p>Des exercices de conjugaison du CE2 au CM2.</p></div><span class="date-label">${icon('calendar')}${new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'long'}).format(new Date())}</span></div>
  <div class="dashboard"><section class="training-column" aria-label="Choisir un entraînement">
  <div class="hero"><div class="hero-copy"><div class="eyebrow">✦ L’AVENTURE DES MOTS</div><h2>Les verbes n’ont qu’à<br><span>bien se tenir.</span></h2><p>Choisis ton niveau, relève le défi et fais grandir ton talent de conjugueur !</p></div>${art}</div>
  <div class="level-section"><span class="section-label">${icon('cap')}Je suis en</span><div class="levels" role="group" aria-label="Ton niveau scolaire">${Object.keys(levelTenses).map(l=>`<button class="level-button ${level===l?'active':''}" data-level="${l}" aria-pressed="${level===l}">${l}</button>`).join('')}</div></div>
+ ${renderJourney(false)}
  <div class="section-title"><h2>On travaille quel temps ?</h2><span class="step">01 · Je choisis</span></div>
+ <label class="mix-toggle"><input type="checkbox" id="mix-tenses" ${mixTenses?'checked':''}> Mélanger les temps de mon niveau</label>
  <div class="lesson-grid">${levelTenses[level].map(key=>{
  const t=tenses[key]; const sessions=state.sessions.filter(s=>s.tense===key&&s.level===level);const best=sessions.length?Math.max(...sessions.map(s=>s.correct)):0;
- return `<button class="lesson ${selected===key?'selected':''}" data-tense="${key}" aria-pressed="${selected===key}"><div class="lesson-top"><span class="icon-tile ${t.color}">${icon(t.icon)}</span><span class="select-dot" aria-hidden="true">${selected===key?'✓':''}</span></div><h3>${t.name}</h3><p>${t.subtitle}</p><div class="lesson-bottom"><span>${sessions.length?`Record : ${best}/10`:'Prêt à explorer'}</span><span class="line" aria-hidden="true"><span style="width:${best*10}%"></span></span></div></button>`;
+ return `<button class="lesson ${selected===key&&!mixTenses?'selected':''}" data-tense="${key}" aria-pressed="${selected===key&&!mixTenses}"><div class="lesson-top"><span class="icon-tile ${t.color}">${icon(t.icon)}</span><span class="select-dot" aria-hidden="true">${selected===key?'✓':''}</span></div><h3>${t.name}</h3><p>${t.subtitle}</p><div class="lesson-bottom"><span>${sessions.length?`Record : ${best}/10`:'Prêt à explorer'}</span><span class="line" aria-hidden="true"><span style="width:${best*10}%"></span></span></div></button>`;
  }).join('')}</div>
+ <div class="exercise-picker"><label for="exercise-format">Comment veux-tu jouer ?</label><select id="exercise-format"><option value="mixed">Surprise ! Les 4 exercices se mélangent</option>${Object.entries(formats).map(([key,label])=>`<option value="${key}" ${exerciseFormat===key?'selected':''}>${label}</option>`).join('')}</select><p>De nouvelles questions, des phrases et un peu de révision à chaque séance.</p></div>
  <div class="mode-section"><div class="section-title"><h2>À chacun son rythme</h2><span class="step">02 · Je me lance</span></div><div class="mode-options" role="group" aria-label="Mode de jeu"><button class="mode ${mode==='practice'?'active':''}" data-mode="practice" aria-pressed="${mode==='practice'}">${icon('leaf')}<span class="mode-text"><strong>Entraînement</strong><small>Je prends mon temps</small></span><span class="select-dot" aria-hidden="true"></span></button><button class="mode ${mode==='timed'?'active':''}" data-mode="timed" aria-pressed="${mode==='timed'}">${icon('clock')}<span class="mode-text"><strong>Défi chrono</strong><small>90 secondes pour jouer</small></span><span class="select-dot" aria-hidden="true"></span></button></div></div>
  <div class="start-row"><span class="session-meta">${icon('book')}10 questions <span>·</span> ${mode==='timed'?'90 secondes':'Sans limite de temps'}</span><button class="primary-button" id="start-quiz">C’est parti ! ${icon('arrow')}</button></div>
- </section><aside class="right-column" aria-label="Tes objectifs"><section class="daily-card"><h2 class="aside-title">${icon('target')}Mon objectif du jour</h2><p>Un petit défi pour garder le rythme.</p><div class="goal-ring" style="--progress:${Math.min(daily,100)}%"><div class="goal-ring-inner"><strong>${daily}<span class="goal-denominator"> / 100</span></strong><small>points aujourd’hui</small></div></div><div class="goal-message">${daily>=100?'Objectif atteint, <strong>bravo à toi !</strong>':daily>0?`Encore <strong>${100-daily} points</strong>, tu y es presque !`:'Une nouvelle journée,<br><strong>une nouvelle chance de progresser !</strong>'}</div><div class="daily-bottom">${icon('sun')}Un peu de pratique, beaucoup de progrès</div></section>
+ </section><aside class="right-column" aria-label="Tes objectifs"><section class="discovery-card"><h2>La mission du jour</h2><p>${mission.label}</p><strong>${mission.value} / ${mission.target}${mission.done?' · Mission accomplie !':''}</strong><button class="secondary-button" id="daily-mission">${mission.done?'Rejouer pour le plaisir':'Jouer la mission'}</button><p>Une idée différente chaque jour. Rien à rattraper si tu fais une pause.</p></section><section class="discovery-card"><h2>Mon carnet ${level}</h2><p><strong>${stats.seen} / ${stats.total}</strong> conjugaisons découvertes</p><p>${stats.mastered} consolidées · ${stats.due} à revoir</p><button class="secondary-button" id="review-quiz" ${stats.due?'':'disabled'}>Réviser à mon rythme</button><p>Les erreurs reviennent en priorité ; les réussites sont revues plus tard.</p></section><section class="daily-card"><h2 class="aside-title">${icon('target')}Mon objectif du jour</h2><p>Un petit défi pour garder le rythme.</p><div class="goal-ring" style="--progress:${Math.min(daily,100)}%"><div class="goal-ring-inner"><strong>${daily}<span class="goal-denominator"> / 100</span></strong><small>points aujourd’hui</small></div></div><div class="goal-message">${daily>=100?'Objectif atteint, <strong>bravo à toi !</strong>':daily>0?`Encore <strong>${100-daily} points</strong>, tu y es presque !`:'Une nouvelle journée,<br><strong>une nouvelle chance de progresser !</strong>'}</div><div class="daily-bottom">${icon('sun')}Un peu de pratique, beaucoup de progrès</div></section>
  <section class="tip-card"><div class="eyebrow">${icon('bulb')}LE PETIT MÉMO</div><h3>Hier, aujourd’hui<br>ou demain ?</h3><p>Repère les mots qui donnent un indice sur le temps : hier, maintenant, demain…</p><button data-page="fiches">Découvrir les fiches ${icon('arrow')}</button></section>
  <section class="badges-card"><div class="badges-heading"><h2 class="aside-title">Mes petits trophées</h2><button class="text-link" data-page="progres">Tout voir</button></div><div class="badge-list">${[0,1,2].map(i=>badge(i)).join('')}</div></section></aside></div>${homeGuide(document.body.dataset.level || undefined)}`;
  main.querySelectorAll('[data-level]').forEach(btn=>btn.addEventListener('click',()=>{state.level=btn.dataset.level;save();location.assign(levelPath(btn.dataset.level));}));
- main.querySelectorAll('[data-tense]').forEach(btn=>btn.addEventListener('click',()=>{selected=btn.dataset.tense;render();main.querySelector(`[data-tense="${selected}"]`).focus();}));
+ main.querySelectorAll('[data-tense]').forEach(btn=>btn.addEventListener('click',()=>{selected=btn.dataset.tense;mixTenses=false;render();main.querySelector(`[data-tense="${selected}"]`).focus();}));
  main.querySelectorAll('[data-mode]').forEach(btn=>btn.addEventListener('click',()=>{mode=btn.dataset.mode;render();main.querySelector(`[data-mode="${mode}"]`).focus();}));
- main.querySelector('#start-quiz').addEventListener('click',startQuiz);
+ main.querySelector('#mix-tenses').addEventListener('change',event=>{mixTenses=event.target.checked;render();main.querySelector('#mix-tenses').focus();});
+ main.querySelector('#exercise-format').addEventListener('change',event=>{exerciseFormat=event.target.value;});
+ main.querySelector('#start-quiz').addEventListener('click',()=>startQuiz());
+ main.querySelector('#daily-mission').addEventListener('click',()=>startQuiz({format:mission.format,tense:'mixed',mode:'practice',mission:true}));
+ main.querySelector('#review-quiz').addEventListener('click',()=>startQuiz({review:true,tense:'mixed',mode:'practice'}));
+ main.querySelector('#journey-quiz')?.addEventListener('click',()=>startQuiz(journeyOptions()));
+}
+function journeyOptions() {
+ const next=journey(level,state.sessions,state.learning).find(x=>!x.done);
+ return {tense:next?.index>0?'mixed':selected,format:next?.index===2?'mixed':exerciseFormat,review:next?.index===4,mode:'practice'};
+}
+function renderJourney(detailed) {
+ const chapters=journey(level,state.sessions,state.learning),next=chapters.find(x=>!x.done);
+ return `<section class="journey-card"><div class="section-title"><h2>Mon voyage ${level}</h2><span>${chapters.filter(x=>x.done).length} / 6 étapes</span></div><ol class="journey-stops">${chapters.map(c=>`<li class="${c.done?'done':c.available?'current':'waiting'}"><span aria-hidden="true">${c.done?'✓':c.index+1}</span><strong>${c.name}</strong><small>${c.done?'Étape accomplie':c.available?'En cours':'À débloquer'}</small>${detailed?`<p>${c.description}</p><small>${c.value} / ${c.target}</small>`:''}</li>`).join('')}</ol>${next?`<p><b>${next.description}</b> · ${next.value} / ${next.target}</p>${detailed?'':'<button class="secondary-button" id="journey-quiz">Continuer mon voyage</button>'}`:'<p>Voyage accompli ! Continue à explorer les verbes et à consolider tes découvertes.</p>'}<p class="journey-note">Toutes les activités restent accessibles. Tes étapes ne disparaissent jamais.</p></section>`;
 }
 function renderProgress() {
  const total=totalAnswers();
- main.innerHTML=`<div class="greeting"><div><h1>Regarde tes progrès <span class="wave">✦</span></h1><p>Chaque entraînement compte. Continue comme ça !</p></div></div><div class="stats-grid"><div class="stat-card"><strong>${state.points}</strong><span>points gagnés</span></div><div class="stat-card"><strong>${state.sessions.length}</strong><span>séries terminées</span></div><div class="stat-card"><strong>${total?Math.round(totalCorrect()/total*100):0}%</strong><span>de bonnes réponses</span></div></div><section class="content-panel"><h2>Mes petits trophées</h2><div class="badge-gallery">${[0,1,2].map(i=>badge(i,true)).join('')}</div></section><section class="content-panel"><h2>Mes derniers entraînements</h2>${state.sessions.length?state.sessions.slice(-10).reverse().map(s=>`<div class="history-row"><div><b>${tenses[s.tense].name}</b><br><small>${s.level} · ${s.mode==='timed'?'Défi chrono':'Entraînement'}</small></div><div>${s.correct}/${s.answered} réussies<br><small>${new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'short'}).format(new Date(s.date))}</small></div><strong>+${s.points} pts</strong></div>`).join(''):'<p>Ton aventure commence ici ! Termine une première série pour découvrir tes progrès.</p><button class="primary-button spaced-action" data-page="accueil">Je m’entraîne '+icon('arrow')+'</button>'}<p class="privacy-note">Tes progrès sont enregistrés uniquement dans ce navigateur, sur cet appareil.</p></section>`;
+ main.innerHTML=`<div class="greeting"><div><h1>Regarde tes progrès <span class="wave">✦</span></h1><p>Chaque entraînement compte. Continue comme ça !</p></div></div><div class="stats-grid"><div class="stat-card"><strong>${state.points}</strong><span>points gagnés</span></div><div class="stat-card"><strong>${state.sessions.length}</strong><span>séries terminées</span></div><div class="stat-card"><strong>${total?Math.round(totalCorrect()/total*100):0}%</strong><span>de bonnes réponses</span></div></div>${renderJourney(true)}<section class="content-panel"><h2>Mes petits trophées</h2><div class="badge-gallery">${[0,1,2].map(i=>badge(i,true)).join('')}</div></section><section class="content-panel"><h2>Mes derniers entraînements</h2>${state.sessions.length?state.sessions.slice(-10).reverse().map(s=>`<div class="history-row"><div><b>${s.tense==='mixed'?'Temps mélangés':tenses[s.tense].name}</b><br><small>${s.level} · ${s.mode==='timed'?'Défi chrono':'Entraînement'}</small></div><div>${s.correct}/${s.answered} réussies<br><small>${new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'short'}).format(new Date(s.date))}</small></div><strong>+${s.points} pts</strong></div>`).join(''):'<p>Ton aventure commence ici ! Termine une première série pour découvrir tes progrès.</p><button class="primary-button spaced-action" data-page="accueil">Je m’entraîne '+icon('arrow')+'</button>'}<p class="privacy-note">Tes progrès sont enregistrés uniquement dans ce navigateur, sur cet appareil.</p></section>`;
 }
 function renderMemos() { main.innerHTML=renderContent({page:'fiches'}); }
 function renderLessonPage() { main.innerHTML=renderContent({page:'lecon',tense:document.body.dataset.tense}); }
@@ -99,12 +122,14 @@ function render() {
 function navigate(next) { location.assign({accueil:'/',progres:'/progres/',fiches:'/fiches/',aide:'/aide/'}[next] || '/'); }
 // Public navigation uses native links so URLs work without JavaScript.
 
-function startQuiz() {
+function startQuiz(options={}) {
  returnFocus=document.activeElement;
- quiz={questions:makeQuestions(level,selected),level,tense:selected,mode,index:0,points:0,correct:0,streak:0,answered:0,locked:false,finished:false,started:Date.now(),deadline:Date.now()+90000,remaining:90,mistakes:[],confirming:false};
- renderQuestion();dialog.showModal();dialog.querySelector('.answer').focus();
+ const settings={level,tense:mixTenses?'mixed':selected,format:exerciseFormat,mode,review:false,...options};
+ quiz={...settings,questions:makeSession({...settings,memory:state.learning}),memory:structuredClone(state.learning),index:0,points:0,correct:0,streak:0,answered:0,locked:false,finished:false,started:Date.now(),deadline:Date.now()+90000,remaining:90,mistakes:[],formatCounts:{},confirming:false,chaptersBefore:journey(level,state.sessions,state.learning).filter(c=>c.done).length};
+ renderQuestion();dialog.showModal();focusAnswer();
  timer=setInterval(tick,200);
 }
+function focusAnswer() { (dialog.querySelector('#written-answer')||dialog.querySelector('.answer'))?.focus(); }
 function formatTime(seconds) { return `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`; }
 function tick() {
  if(!quiz||quiz.finished)return;
@@ -116,38 +141,47 @@ function tick() {
 }
 function renderQuestion() {
  const q=quiz.questions[quiz.index];
- dialog.innerHTML=`<header class="quiz-header"><div><h2 id="quiz-title">${tenses[quiz.tense].name}</h2><small>${quiz.level} · ${quiz.mode==='timed'?'Défi chrono':'Entraînement'}</small></div><button class="close-button" aria-label="Quitter l’exercice" id="quit-quiz">${icon('close')}</button></header><div class="quiz-body"><div class="quiz-status"><span>Question <strong>${quiz.index+1}</strong> sur 10</span><span id="quiz-points">✦ ${quiz.points} pts</span><span class="quiz-timer" aria-label="${quiz.mode==='timed'?'Temps restant':'Temps écoulé'}">${icon('clock')}<span id="timer-value">${formatTime(quiz.mode==='timed'?quiz.remaining:Math.floor((Date.now()-quiz.started)/1000))}</span></span></div><div class="progress-track" role="progressbar" aria-label="Questions terminées" aria-valuemin="0" aria-valuemax="10" aria-valuenow="${quiz.answered}"><span style="width:${quiz.answered*10}%"></span></div><p class="question-instruction">Conjugue ce verbe ${ {present:'au présent',imparfait:'à l’imparfait',futur:'au futur',compose:'au passé composé',simple:'au passé simple',parfait:'au plus-que-parfait'}[quiz.tense] }.</p><h3 class="question-verb">${q.verb}</h3><div class="question-person">${q.person} <span>…</span></div><div class="answers" role="group" aria-label="Choisis la bonne réponse">${q.choices.map((choice,i)=>`<button class="answer" data-choice="${i}">${choice}</button>`).join('')}</div><div id="feedback" aria-live="polite"></div><div class="quiz-actions"><small>Les erreurs font partie du voyage.</small><button class="primary-button" id="next-question" hidden>Suivant ${icon('arrow')}</button></div></div>`;
- // The display declaration on the shared button must not override the hidden state.
- dialog.querySelector('#next-question').style.display='none';
- dialog.querySelectorAll('[data-choice]').forEach(btn=>btn.addEventListener('click',()=>answerQuestion(Number(btn.dataset.choice))));
+ const pronoun=q.person==='je'&&/^[aàâeéèêëiîïoôuùûh]/i.test(q.answer)?'j’':q.person+' ';
+ const instructions={choice:'Choisis la bonne conjugaison.',write:'Écris seulement la forme conjuguée, sans le sujet.',sentence:'Complète la phrase avec la forme conjuguée.',correct:'Cette phrase contient une erreur de conjugaison. Écris la forme correcte.'};
+ let exercise=q.format==='choice'?'<div class="answers" role="group" aria-label="Choisis la bonne réponse">'+q.choices.map((choice,i)=>'<button class="answer" data-choice="'+i+'">'+choice+'</button>').join('')+'</div>':'<form id="written-form"><label for="written-answer">Ta conjugaison (sans le sujet)</label><input id="written-answer" name="answer" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="80" required aria-describedby="writing-help"><p id="writing-help">Les accents comptent. Pour un temps composé, écris les deux mots.</p><div class="accent-keys" role="group" aria-label="Ajouter un accent">'+['é','è','ê','î','û','â','ç'].map(c=>'<button type="button" data-accent="'+c+'" aria-label="Insérer '+c+'">'+c+'</button>').join('')+'</div><div class="writing-actions"><button class="primary-button" type="submit">Valider</button><button class="text-link" type="button" id="show-hint">Un indice ?</button></div><p id="answer-hint" aria-live="polite"></p></form>';
+ const prompt=q.format==='sentence'?'<p class="context-sentence">'+pronoun+'<span aria-label="verbe à compléter">…</span> '+q.complement+'.</p>':q.format==='correct'?'<p class="context-sentence">'+phrase(q.person,q.wrongForm)+' '+q.complement+'.</p>':'<div class="question-person">'+q.person+' <span>…</span></div>';
+ dialog.innerHTML='<header class="quiz-header"><div><h2 id="quiz-title">'+tenses[q.tense].name+'</h2><small>'+quiz.level+' · '+formats[q.format]+(q.review?' · Révision':'')+'</small></div><button class="close-button" aria-label="Quitter l’exercice" id="quit-quiz">'+icon('close')+'</button></header><div class="quiz-body"><div class="quiz-status"><span>Question <strong>'+(quiz.index+1)+'</strong> sur 10</span><span id="quiz-points">✦ '+quiz.points+' pts</span><span class="quiz-timer" aria-label="'+(quiz.mode==='timed'?'Temps restant':'Temps écoulé')+'">'+icon('clock')+'<span id="timer-value">'+formatTime(quiz.mode==='timed'?quiz.remaining:Math.floor((Date.now()-quiz.started)/1000))+'</span></span></div><div class="progress-track" role="progressbar" aria-label="Questions terminées" aria-valuemin="0" aria-valuemax="10" aria-valuenow="'+quiz.answered+'"><span style="width:'+quiz.answered*10+'%"></span></div><p class="question-instruction">'+instructions[q.format]+' <strong>Temps demandé : '+tenses[q.tense].name.toLowerCase()+'.</strong></p><h3 class="question-verb">'+q.verb+'</h3>'+prompt+exercise+'<div id="feedback" aria-live="polite"></div><div class="quiz-actions"><small>Les erreurs font partie du voyage.</small><button class="primary-button" id="next-question" hidden>Suivant '+icon('arrow')+'</button></div></div>';
+ dialog.querySelectorAll('[data-choice]').forEach(btn=>btn.addEventListener('click',()=>answerQuestion(q.choices[Number(btn.dataset.choice)])));
+ dialog.querySelector('#written-form')?.addEventListener('submit',event=>{event.preventDefault();answerQuestion(dialog.querySelector('#written-answer').value);});
+ dialog.querySelectorAll('[data-accent]').forEach(btn=>btn.addEventListener('click',()=>{const input=dialog.querySelector('#written-answer');input.setRangeText(btn.dataset.accent,input.selectionStart,input.selectionEnd,'end');input.focus();}));
+ dialog.querySelector('#show-hint')?.addEventListener('click',()=>{dialog.querySelector('#answer-hint').textContent='La réponse commence par « '+q.answer[0]+' » et contient '+q.answer.split(' ').length+' mot(s).';});
  dialog.querySelector('#quit-quiz').addEventListener('click',confirmQuit);
  dialog.querySelector('#next-question').addEventListener('click',nextQuestion);
- if(dialog.open)dialog.querySelector('.answer').focus();
+ if(dialog.open)focusAnswer();
 }
-function answerQuestion(index) {
- if(!quiz||quiz.locked||quiz.finished)return;
+function answerQuestion(chosen) {
+ if(!quiz||quiz.locked||quiz.finished||!chosen.trim())return;
  if(quiz.mode==='timed'&&Date.now()>=quiz.deadline){finishQuiz(true);return;}
- const q=quiz.questions[quiz.index]; const correct=q.choices[index]===q.answer;
+ const q=quiz.questions[quiz.index],correct=isCorrect(chosen,q.answer);
  quiz.locked=true;quiz.answered++;quiz.streak=correct?quiz.streak+1:0;
+ quiz.formatCounts[q.format]=(quiz.formatCounts[q.format]||0)+1;
+ recordAnswer(quiz.memory,q,correct);
  const points=scoreAnswer(correct,quiz.streak);quiz.points+=points;
- if(correct)quiz.correct++;else quiz.mistakes.push({verb:q.verb,person:q.person,answer:q.answer,chosen:q.choices[index]});
- dialog.querySelectorAll('.answer').forEach((btn,i)=>{btn.disabled=true;if(q.choices[i]===q.answer)btn.classList.add('correct');else if(i===index)btn.classList.add('wrong');});
- dialog.querySelector('#quiz-points').textContent=`✦ ${quiz.points} pts`;
+ if(correct)quiz.correct++;else quiz.mistakes.push({verb:q.verb,person:q.person,answer:q.answer,chosen});
+ dialog.querySelectorAll('.answer').forEach(btn=>{btn.disabled=true;const value=q.choices[Number(btn.dataset.choice)];if(value===q.answer)btn.classList.add('correct');else if(value===chosen)btn.classList.add('wrong');});
+ dialog.querySelectorAll('#written-form input, #written-form button').forEach(el=>el.disabled=true);
+ dialog.querySelector('#quiz-points').textContent='✦ '+quiz.points+' pts';
  const verb=verbs.find(v=>v.infinitive===q.verb);
- const reminder=quiz.tense==='present'&&!q.verb.endsWith('er')?`À retenir : ${verb.present.map((form,i)=>phrase(['je','tu','il','nous','vous','ils'][i],form)).join(', ')}.`:tenses[quiz.tense].tip;
- dialog.querySelector('#feedback').innerHTML=`<div class="feedback ${correct?'':'incorrect'}"><strong>${correct?`Bien joué ! +${points} points${quiz.streak>=3?' · Quelle série !':''}`:'On apprend ensemble !'}</strong>${correct?'':`<div>La bonne réponse : <b>${phrase(q.person,q.answer)}</b>.</div>`}<small>${reminder}</small></div>`;
- const next=dialog.querySelector('#next-question');next.hidden=false;next.style.display='inline-flex';next.innerHTML=`${quiz.index===9?'Voir mon résultat':'Suivant'} ${icon('arrow')}`;next.focus();
+ const reminder=q.tense==='present'&&!q.verb.endsWith('er')?'À retenir : '+verb.present.map((form,i)=>phrase(['je','tu','il','nous','vous','ils'][i],form)).join(', ')+'.':tenses[q.tense].tip;
+ dialog.querySelector('#feedback').innerHTML='<div class="feedback '+(correct?'':'incorrect')+'"><strong>'+(correct?'Bien joué ! +'+points+' points'+(quiz.streak>=3?' · Quelle série !':''):'On apprend ensemble !')+'</strong>'+(correct?'':'<div>La bonne réponse : <b>'+phrase(q.person,q.answer)+'</b>.</div><div>Cette conjugaison reviendra pour t’aider à la retenir.</div>')+'<small>'+reminder+'</small></div>';
+ const next=dialog.querySelector('#next-question');next.hidden=false;next.innerHTML=(quiz.index===9?'Voir mon résultat':'Suivant')+' '+icon('arrow');next.focus();
 }
 function nextQuestion() { if(!quiz?.locked||quiz.finished)return;if(quiz.index===9){finishQuiz(false);return;}quiz.index++;quiz.locked=false;renderQuestion(); }
 function finishQuiz(timedOut) {
  if(!quiz||quiz.finished)return;
  quiz.finished=true;clearInterval(timer);timer=null;
  const elapsed=quiz.mode==='timed'?Math.min(90,Math.round((Date.now()-quiz.started)/1000)):Math.round((Date.now()-quiz.started)/1000);
- const completed={date:new Date().toISOString(),level:quiz.level,tense:quiz.tense,mode:quiz.mode,points:quiz.points,correct:quiz.correct,answered:quiz.answered,elapsed};
- state.points+=quiz.points;state.sessions.push(completed);state.daily[localDate()]=todayPoints()+quiz.points;save();render();
- dialog.innerHTML=`<div class="results"><div class="result-medal" aria-hidden="true">${quiz.correct===10?'🏆':quiz.correct>=7?'✦':'🌱'}</div><h2 id="quiz-title">${quiz.correct===10?'Un sans-faute, bravo !':quiz.correct>=7?'Tu peux être fier de toi !':'Un pas de plus, bien joué !'}</h2><p>${timedOut?'Le temps est écoulé. Chaque réponse compte !':'Tu viens de terminer ton entraînement.'}<br>${quiz.correct===10?'Les verbes n’ont plus de secrets pour toi.':'Continue à pratiquer, tu es sur la bonne voie.'}</p><div class="result-stats"><div><strong>+${quiz.points}</strong><span>points gagnés</span></div><div><strong>${quiz.correct}/10</strong><span>bonnes réponses</span></div><div><strong>${formatTime(elapsed)}</strong><span>temps de jeu</span></div></div>${timedOut&&quiz.answered<10?`<p>${quiz.answered} question${quiz.answered>1?'s':''} répondue${quiz.answered>1?'s':''} sur 10.</p>`:''}${quiz.mistakes.length?`<details class="review-list"><summary>Revoir ${quiz.mistakes.length===1?'ma correction':`mes ${quiz.mistakes.length} corrections`}</summary>${quiz.mistakes.map(m=>`<div class="review-item"><b>${m.verb} → ${phrase(m.person,m.answer)}</b><small>Ta réponse : ${m.chosen}</small></div>`).join('')}</details>`:''}${!storageAvailable?'<p class="storage-warning">Ces progrès ne pourront pas être conservés après fermeture du navigateur.</p>':''}<div class="quiz-actions"><button class="secondary-button" id="back-home">Retour à mon espace</button><button class="primary-button" id="play-again">Rejouer ${icon('arrow')}</button></div></div>`;
+ const completed={date:new Date().toISOString(),day:localDate(),level:quiz.level,tense:quiz.tense,mode:quiz.mode,points:quiz.points,correct:quiz.correct,answered:quiz.answered,elapsed,formats:Object.keys(quiz.formatCounts),formatCounts:quiz.formatCounts};
+ state.points+=quiz.points;state.sessions.push(completed);state.learning=quiz.memory;state.daily[localDate()]=todayPoints()+quiz.points;save();render();
+ const unlocked=journey(quiz.level,state.sessions,state.learning).filter(c=>c.done).length>quiz.chaptersBefore;
+ dialog.innerHTML='<div class="results"><div class="result-medal" aria-hidden="true">'+(quiz.correct===10?'🏆':quiz.correct>=7?'✦':'🌱')+'</div><h2 id="quiz-title">'+(quiz.correct===10?'Un sans-faute, bravo !':quiz.correct>=7?'Tu peux être fier de toi !':'Un pas de plus, bien joué !')+'</h2><p>'+(timedOut?'Le temps est écoulé. Chaque réponse compte !':'Tu viens de terminer ton entraînement.')+'</p>'+(unlocked?'<p class="milestone-message">Une nouvelle étape de ton voyage est accomplie !</p>':'')+'<div class="result-stats"><div><strong>+'+quiz.points+'</strong><span>points gagnés</span></div><div><strong>'+quiz.correct+'/'+quiz.answered+'</strong><span>réponses réussies</span></div><div><strong>'+formatTime(elapsed)+'</strong><span>temps de jeu</span></div></div>'+(timedOut&&quiz.answered<10?'<p>'+quiz.answered+' question(s) répondue(s) sur 10.</p>':'')+(quiz.mistakes.length?'<details class="review-list"><summary>Revoir mes '+quiz.mistakes.length+' correction(s)</summary>'+quiz.mistakes.map(m=>'<div class="review-item"><b>'+m.verb+' → '+phrase(m.person,m.answer)+'</b><small>Ta réponse : '+escapeHTML(m.chosen)+'</small></div>').join('')+'</details>':'')+(!storageAvailable?'<p class="storage-warning">Ces progrès ne pourront pas être conservés après fermeture du navigateur.</p>':'')+'<p>Une petite séance suffit. Tu peux revenir quand tu veux.</p><div class="quiz-actions"><button class="secondary-button" id="back-home">Faire une pause</button><button class="primary-button" id="play-again">Une nouvelle série '+icon('arrow')+'</button></div></div>';
  dialog.querySelector('#back-home').addEventListener('click',closeQuiz);
- dialog.querySelector('#play-again').addEventListener('click',()=>{dialog.close();startQuiz();});
+ dialog.querySelector('#play-again').addEventListener('click',()=>{const options={tense:quiz.tense,format:quiz.format,mode:quiz.mode,review:quiz.review};dialog.close();startQuiz(options);});
  dialog.querySelector('#back-home').focus();
 }
 function confirmQuit() {
@@ -157,7 +191,7 @@ function confirmQuit() {
  const previous=document.createElement('div');while(dialog.firstChild)previous.appendChild(dialog.firstChild);
  dialog.innerHTML=`<div class="confirm-exit"><h2 id="quiz-title">Faire une pause ?</h2><p>Cette série ne sera pas enregistrée si tu la quittes.${quiz.mode==='timed'?'<br>Le chronomètre continue pendant ce message.':''}</p><div class="quiz-actions"><button class="secondary-button" id="leave-now">Quitter la série</button><button class="primary-button" id="keep-playing">Continuer</button></div></div>`;
  dialog.querySelector('#leave-now').addEventListener('click',closeQuiz);
- dialog.querySelector('#keep-playing').addEventListener('click',()=>{quiz.confirming=false;dialog.replaceChildren(...previous.childNodes);(dialog.querySelector('#next-question:not([hidden])')||dialog.querySelector('.answer')).focus();tick();});
+ dialog.querySelector('#keep-playing').addEventListener('click',()=>{quiz.confirming=false;dialog.replaceChildren(...previous.childNodes);(dialog.querySelector('#next-question:not([hidden])')||dialog.querySelector('#written-answer')||dialog.querySelector('.answer')).focus();tick();});
  dialog.querySelector('#keep-playing').focus();
 }
 function closeQuiz() { clearInterval(timer);timer=null;quiz=null;dialog.close();if(returnFocus?.isConnected)returnFocus.focus();else main.focus(); }
