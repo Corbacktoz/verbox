@@ -14,15 +14,17 @@ Dossier de travail : verbox-development. Les copies verbox-repo, verbox-rgpd et 
 
 Ces branches sont empilées. Ne pas fusionner les branches intermédiaires en sens inverse : fusionner dans cet ordre, puis recibler chaque PR suivante sur main après sa dépendance. Le site public n’a pas été déployé par cette tâche.
 
-## Avant publication des contenus
+## Contrôles de livraison
 
-- Effectuer la relecture pédagogique de CONTENT-REVIEW.md.
-- Valider les mentions selon le statut réel de l’éditeur.
-- Terminer le parcours clavier du quiz (blocage de l’outil navigateur par quota d’autorisation).
-- Vérifier les checks GitHub du commit final et, après publication, l’indexation avec Search Console.
+- Relecture assistée effectuée : voir CONTENT-REVIEW.md, avec sources, corrections et limites.
+- Statut confirmé par l’éditeur : particulier, activité non professionnelle. Mentions adaptées, directeur de publication et hébergeur renseignés.
+- Validation juridique complète encore ouverte : l’éditeur confirme ne pas avoir communiqué les éléments d’identification personnelle à GitHub. L’article 1-1 II de la LCEN conditionne la limitation des mentions publiques à cette transmission. Aucune adresse privée ou donnée manquante n’a été inventée. Avant publication, régler ce point avec l’hébergeur ou choisir les mentions publiques complètes applicables.
+- Source légale consultée le 19 septembre 2026 : https://www.legifrance.gouv.fr/loda/id/JORFTEXT000000801164 (article 1-1 I et II).
+- Parcours clavier réalisé dans le navigateur sur la version statique locale : dix réponses, succès et erreurs, passage par Entrée, résultat, relance, Échap, continuer/quitter et retour au bouton de départ après reconstruction du DOM. Tab et Maj+Tab bouclent dans le dialogue après correction d’une sortie vers le navigateur. Aucune erreur console observée. Ceci ne constitue pas un audit complet avec lecteur d’écran.
+- Validation locale : 31 tests fonctionnels/contenu/audience, 11 tests SEO, build et design verts.
+- Contrôles GitHub du dernier commit à consulter sur la dernière PR avant fusion ; aucune publication effectuée.
+- Search Console accessible pour la propriété verbox.fr ; le 19 septembre 2026, les rapports d’indexation et performances indiquent « Traitement des données en cours ». Les nouvelles pages ne peuvent pas être vérifiées en production avant leur déploiement.
 
-## Description préparée pour la dernière PR
+## Après publication
 
-Le chargeur de progrès gère les sauvegardes corrompues, les clés héritées et les valeurs de types inattendus, sans perdre les sauvegardes valides ni la migration Conjugo. Le dialogue retrouve le bouton de lancement après la reconstruction de la page de résultats. Les contrôles HTML couvrent langue, titres, identifiants, tableaux et scripts ; chaque route est testée avec les préférences de confidentialité.
-
-Validation locale : 30 tests fonctionnels/contenu/audience, 11 tests SEO, build et design verts. Contrôle visuel bureau et tableaux mobiles à 390/320 px. Le parcours clavier complet reste à terminer : le contrôle automatique d’autorisation du navigateur a été bloqué par son quota.
+Vérifier le succès du déploiement GitHub Pages et les URL canoniques publiques. Contrôler le sitemap https://verbox.fr/sitemap.xml (24 URL prévues), puis inspecter l’accueil, une page de niveau et les nouvelles fiches dans Search Console. Distinguer accessibilité au test en direct et indexation effective ; aucune indexation n’est garantie ni déclarée acquise.

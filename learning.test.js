@@ -50,6 +50,15 @@ test('Saisie : casse et espaces tolérés, accents et conjugaisons exigés',()=>
  assert.ok(!isCorrect('chante','chanté'));assert.ok(!isCorrect('je chante','chante'));
  assert.ok(!isCorrect('<img src=x onerror=alert(1)>','chante'));
 });
+test('Puis est accepté uniquement pour pouvoir à la première personne du présent',()=>{
+ const questions=questionPool('CM2');
+ const target=questions.find(q=>q.id==='pouvoir:present:0');
+ assert.ok(isCorrect(' PUIS ',target.answer,target));
+ assert.ok(isCorrect('peux',target.answer,target));
+ for(const q of questions.filter(q=>q.id!==target.id))assert.ok(!isCorrect('puis',q.answer,q));
+ assert.ok(!isCorrect('pui',target.answer,target));
+ assert.ok(!isCorrect('je puis',target.answer,target));
+});
 test('Migration et mémoire corrompue ne créent pas de faux progrès',()=>{
  assert.deepEqual(sanitizeLearning(undefined),{});
  assert.deepEqual(sanitizeLearning({unknown:{seen:10},[questionPool('CE2')[0].id]:{seen:'bad'}}),{});

@@ -20,7 +20,10 @@ export function sanitizeLearning(value) {
  return clean;
 }
 export function normalizeAnswer(value) { return String(value).normalize('NFC').toLocaleLowerCase('fr').trim().replace(/[’‘]/g,"'").replace(/\s+/g,' '); }
-export function isCorrect(value,answer) { return normalizeAnswer(value)===normalizeAnswer(answer); }
+export function isCorrect(value,answer,question) {
+ const normalized=normalizeAnswer(value);
+ return normalized===normalizeAnswer(answer)||(question?.verb==='pouvoir'&&question.tense==='present'&&question.index===0&&normalized==='puis');
+}
 export function recordAnswer(memory,q,correct,now=Date.now()) {
  const previous=memory[q.id];const streak=correct?(previous?.streak||0)+1:0;
  memory[q.id]={seen:(previous?.seen||0)+1,streak,bestStreak:Math.max(previous?.bestStreak||0,streak),last:now,due:now+(correct?[1,3,7,14,30][Math.min(streak-1,4)]*DAY:0),wrong:!correct};

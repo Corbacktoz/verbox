@@ -153,7 +153,7 @@ function renderQuestion() {
 function answerQuestion(chosen) {
  if(!quiz||quiz.locked||quiz.finished||!chosen.trim())return;
  if(quiz.mode==='timed'&&Date.now()>=quiz.deadline){finishQuiz(true);return;}
- const q=quiz.questions[quiz.index],correct=isCorrect(chosen,q.answer);
+ const q=quiz.questions[quiz.index],correct=isCorrect(chosen,q.answer,q);
  quiz.locked=true;quiz.answered++;quiz.streak=correct?quiz.streak+1:0;
  quiz.formatCounts[q.format]=(quiz.formatCounts[q.format]||0)+1;
  recordAnswer(quiz.memory,q,correct);
@@ -192,5 +192,12 @@ function confirmQuit() {
 }
 function closeQuiz() { clearInterval(timer);timer=null;quiz=null;dialog.close();const target=returnFocus?.isConnected?returnFocus:document.getElementById(returnFocus?.id);if(target)target.focus();else main.focus(); }
 dialog.addEventListener('cancel',event=>{event.preventDefault();confirmQuit();});
+dialog.addEventListener('keydown',event=>{
+ if(event.key!=='Tab')return;
+ const stops=[...dialog.querySelectorAll('button,input,select,textarea,a[href],summary,[tabindex]')].filter(el=>!el.disabled&&el.tabIndex>=0&&el.getClientRects().length);
+ const first=stops[0],last=stops.at(-1);
+ if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}
+ else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}
+});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')tick();});
 render();

@@ -10,7 +10,7 @@ export const levelGuides = {
   CE2:{
     method:'Commence par repérer le sujet : qui fait l’action ? Remplace un prénom par il ou elle, puis plusieurs prénoms par ils ou elles. Choisis ensuite le temps. Le sujet et le temps te donnent deux indices pour écrire la bonne terminaison. Lis la correction avant de passer à la question suivante.',
     goal:'Distinguer maintenant, autrefois et demain',
-    practice:'Travaille d’abord un seul temps. Quand tu te sens à l’aise, compare le présent et le futur du même verbe : nous chantons, nous chanterons. Le futur contient un r qui ne s’entend pas toujours bien. Pour être et avoir, apprends les formes avec leur sujet : nous sommes, vous avez.',
+    practice:'Travaille d’abord un seul temps. Quand tu te sens à l’aise, compare le présent et le futur du même verbe : nous chantons, nous chanterons. Dans chanterons, repère -er- avant la terminaison -ons. Pour être et avoir, apprends les formes avec leur sujet : nous sommes, vous avez.',
     mistakes:[
       {verb:'chanter',tense:'present',index:1,wrong:'tu chante',correct:'tu chantes',why:'Avec tu, la terminaison de chanter au présent est -es.'},
       {verb:'jouer',tense:'imparfait',index:5,wrong:'ils jouait',correct:'ils jouaient',why:'Avec ils, le verbe à l’imparfait se termine par -aient.'},
@@ -59,7 +59,7 @@ export function renderLevelGuide(level, {description, lessonPath, verbLink = v=>
       return selected.length?`<p><strong>${category.label}</strong></p><ul class="verb-list">${selected.map(v=>`<li data-verb="${v.infinitive}">${verbLink(v)}</li>`).join('')}</ul>`:'';
     }).join('')}</div>
     <h3>Les temps à travailler</h3><ul class="lesson-links">${levelTenses[level].map(tense=>`<li><a href="${lessonPath(tense)}">${tenses[tense].name}</a><p>${tenses[tense].tip}</p><p class="memo-example">${tenseExamples[tense].sentence}</p></li>`).join('')}</ul>
-    <h3>Trois erreurs à comprendre</h3><ul class="help-list">${guide.mistakes.map(m=>`<li><span>À éviter au temps demandé : <s>${m.wrong}</s>.</span> <strong>On écrit : ${m.correct}.</strong> ${m.why}</li>`).join('')}</ul>
+    <h3>Trois erreurs à comprendre</h3><ul class="help-list">${guide.mistakes.map(m=>`<li><span>Temps travaillé : ${tenses[m.tense].name.toLowerCase()}. À éviter ici : <s>${m.wrong}</s>.</span> <strong>On écrit : ${m.correct}.</strong> ${m.why}</li>`).join('')}</ul>
     <h3>Une petite séance pour essayer</h3><p>Choisis un temps en haut de la page, puis lance une série. Tu peux prendre tout le temps nécessaire en mode entraînement. Lis chaque correction : une erreur t’indique ce que tu peux retravailler.</p>
     <p>Ces activités complètent les leçons de classe. Elles ne couvrent pas tout le programme scolaire. Les exercices de temps composés utilisent avoir, sans travailler les règles complètes d’accord du participe passé.</p>
   </section>`;
