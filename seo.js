@@ -40,7 +40,8 @@ export function renderPage(template,route,config,production=false) {
  if(route.page==='confidentialite')template=template.replace('id="page-label">Mon entraînement','id="page-label">Confidentialité');
  return template.replace(/<!-- SEO_START -->[\s\S]*?<!-- SEO_END -->/,`<!-- SEO_START -->${metadata(route,config,production)}<!-- SEO_END -->`)
  .replace('<body>',`<body data-page="${route.page}" data-level="${route.level||''}" data-tense="${route.tense||''}">`)
- .replace(/<main id="main" tabindex="-1">[\s\S]*?<\/main>/,`<main id="main" tabindex="-1">${renderContent(route,config)}</main>`);
+ .replace(/<main id="main" tabindex="-1">[\s\S]*?<\/main>/,`<main id="main" tabindex="-1">${renderContent(route,config)}</main>`)
+ .replace(/[ \t]+$/gm,'');
 }
 export function robots(config,production=false) {
  const origin=publicOrigin(config.siteUrl,production);
