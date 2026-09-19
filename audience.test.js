@@ -38,6 +38,16 @@ test('No external script when inactive, opted out, storage unavailable, DNT/GPC 
   }
 });
 
+test('Matomo Cloud uses the supplied CDN while collection stays on the dedicated instance',()=>{
+  const cloud = audienceConfig({...config,audience:{...config.audience,matomoUrl:'https://verbox.matomo.cloud/',matomoScriptUrl:'https://cdn.matomo.cloud/verbox.matomo.cloud/matomo.js'}});
+  const b = browser({data:{...settings,...cloud}});
+  assert.equal(b.scripts[0].src,'https://cdn.matomo.cloud/verbox.matomo.cloud/matomo.js');
+  assert.deepEqual(b.win._paq.find(([command])=>command==='setTrackerUrl'),['setTrackerUrl','https://verbox.matomo.cloud/matomo.php']);
+  for(const script of ['https://untrusted.example.org/matomo.js','https://cdn.matomo.cloud/other.matomo.cloud/matomo.js','http://cdn.matomo.cloud/verbox.matomo.cloud/matomo.js','https://cdn.matomo.cloud/verbox.matomo.cloud/matomo.js?extra=1']) {
+    assert.throws(()=>audienceConfig({...config,audience:{...config.audience,matomoUrl:'https://verbox.matomo.cloud/',matomoScriptUrl:script}}));
+  }
+});
+
 test('Only a sanitized page view is sent after loading; cookies and advanced tracking disabled first',()=>{
   const {scripts,win}=browser();
   assert.equal(scripts.length,1);

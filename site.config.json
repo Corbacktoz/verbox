@@ -9,8 +9,9 @@
   },
   "audience": {
     "enabled": false,
-    "matomoUrl": "",
-    "siteId": "",
+    "matomoUrl": "https://verbox.matomo.cloud/",
+    "matomoScriptUrl": "https://cdn.matomo.cloud/verbox.matomo.cloud/matomo.js",
+    "siteId": "1",
     "cnilConfigurationVerified": false
   }
 }

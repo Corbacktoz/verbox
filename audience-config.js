@@ -13,5 +13,10 @@ export function audienceConfig(config) {
     throw new Error('Matomo doit utiliser une adresse HTTPS publique, sans identifiants ni paramètres.');
   }
   if (!/^[1-9]\d*$/.test(String(settings.siteId))) throw new Error('Identifiant de site Matomo invalide.');
-  return { url: url.href.replace(/\/?$/, '/'), siteId: String(settings.siteId) };
+  const base = url.href.replace(/\/?$/, '/');
+  const scriptUrl = new URL(settings.matomoScriptUrl || base + 'matomo.js');
+  const sameInstance = scriptUrl.href === base + 'matomo.js';
+  const cloudCdn = url.hostname.endsWith('.matomo.cloud') && scriptUrl.href === `https://cdn.matomo.cloud/${url.hostname}/matomo.js`;
+  if (!sameInstance && !cloudCdn) throw new Error('Le script Matomo doit provenir de l’instance ou de son CDN Matomo Cloud.');
+  return { url: base, scriptUrl: scriptUrl.href, siteId: String(settings.siteId) };
 }
