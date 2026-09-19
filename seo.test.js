@@ -18,7 +18,7 @@ test('Pages publiques : HTML lisible, titre unique, canonique et données struct
   assert.equal((html.match(/<title>/g)||[]).length,1);
   assert.ok(html.includes(`rel="canonical" href="${config.siteUrl}${route.path}"`));
   assert.ok(html.includes(route.noindex?'content="noindex, follow"':'content="index, follow, max-image-preview:large"'));
-  assert.equal(html.includes('src="/app.js"'),route.page!=='confidentialite');
+  assert.equal(html.includes('src="/app.js"'),!['confidentialite','apropos','mentions'].includes(route.page));
   assert.ok(!html.includes('Conjugo'));
   const graph=JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
   assert.equal(graph['@graph'][0].name,'Verbox');
@@ -29,11 +29,26 @@ test('Pages publiques : HTML lisible, titre unique, canonique et données struct
   }
  }
 });
-test('Sitemap : seulement les 12 URL publiques canoniques ; robots autorise les ressources',()=>{
- const xml=sitemap(config);assert.equal((xml.match(/<loc>/g)||[]).length,12);
+test('Sitemap : seulement les routes publiques canoniques ; robots autorise les ressources',()=>{
+ const xml=sitemap(config);assert.equal((xml.match(/<loc>/g)||[]).length,routes.filter(r=>!r.noindex).length);
  assert.ok(!xml.includes('/progres/')&&!xml.includes('design-preview'));
  for(const [,loc]of xml.matchAll(/<loc>(.*?)<\/loc>/g))assert.equal(new URL(loc).search,'');
  const text=robots(config,true);assert.ok(text.includes('User-agent: *\nAllow: /'));assert.ok(text.includes('Sitemap: https://verbox.example/sitemap.xml'));assert.ok(!text.includes('Disallow: /progres'));
+});
+
+test('Informations du projet : contact configuré, adresse échappée et mentions hors sitemap',()=>{
+ const configured={...config,privacy:{editorName:'Éditeur <test>',contactEmail:'contact@example.test',hostAddress:'Adresse & suite'}};
+ for(const page of ['apropos','mentions']){
+  const route=routes.find(r=>r.page===page);
+  const html=renderPage(template,route,configured,true);
+  assert.ok(html.includes('mailto:contact@example.test'));
+  assert.ok(html.includes('BreadcrumbList'));
+  assert.ok(html.includes('href="/a-propos/"')&&html.includes('href="/mentions-legales/"'));
+  if(page==='mentions'){
+   assert.ok(html.includes('Éditeur &lt;test&gt;')&&html.includes('Adresse &amp; suite'));
+   assert.ok(!sitemap(config).includes(route.path));
+  }else assert.ok(sitemap(config).includes(route.path));
+ }
 });
 test('L’aperçu ne devient pas indexable et la production exige un domaine HTTPS',()=>{
  const html=renderPage(template,routes[0],{siteUrl:''},false);
@@ -55,7 +70,7 @@ test('Aperçu de partage au format PNG 1200 × 630',async()=>{
 test('Build statique : vraies pages, ressources et fichiers robots dans une sortie isolée',async()=>{
  const parent=await realpath(tmpdir());const dir=await mkdtemp(path.join(parent,'verbox-seo-test-'));
  try{
-  const result=await buildSite({config,output:pathToFileURL(dir+path.sep)});assert.equal(result.indexable,12);
+  const result=await buildSite({config,output:pathToFileURL(dir+path.sep)});assert.equal(result.indexable,routes.filter(r=>!r.noindex).length);
   const home=await readFile(path.join(dir,'index.html'),'utf8');assert.ok(home.includes('index, follow, max-image-preview:large'));
   // Validate the actual static artifact: GitHub Pages cannot run server.js.
   for(const route of routes){
