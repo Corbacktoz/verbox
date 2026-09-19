@@ -2,6 +2,12 @@
 
 Version 1.0 · 18 septembre 2026
 
+## Exercices variés et parcours
+
+Les cartes de voyage et de mission reprennent les surfaces, contours et espacements existants. Une étape indique textuellement « En cours », « À débloquer » ou « Étape accomplie » ; sa couleur seule ne porte pas l’état. Le voyage conserve toutes les activités accessibles et ne pénalise pas les pauses.
+
+Les exercices écrits utilisent un champ étiqueté, une consigne avec le temps demandé, la validation par Entrée, un indice facultatif et des touches accentuées d’au moins 44 px. Les corrections sont annoncées dans la zone de retour existante. Sur mobile, les étapes passent à deux colonnes et les touches se répartissent sur plusieurs lignes. Le bilan propose de faire une pause avant de relancer une série.
+
 ## Intention
 
 Verbox est un carnet d’entraînement à la conjugaison pour les élèves de CE2, CM1 et CM2. La première page permet de choisir sa classe, un temps et un mode de jeu. L’interface reste calme et encourageante : les points valorisent l’effort, et les corrections indiquent toujours comment progresser.

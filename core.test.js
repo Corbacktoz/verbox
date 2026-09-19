@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { verbs, tenses, levelTenses, makeQuestions, scoreAnswer, phrase, localDate } from './core.js';
+import { verbs, tenses, levelTenses, allowedVerbs, makeQuestions, scoreAnswer, phrase, localDate } from './core.js';
 
 test('Toutes les conjugaisons contiennent six personnes pour chaque temps', () => {
  for(const verb of verbs) for(const tense of Object.keys(tenses)) {
@@ -21,7 +21,7 @@ test('Chaque série propose dix questions distinctes et quatre choix dont une se
    assert.equal(q.choices.length,4);
    assert.equal(new Set(q.choices).size,4);
    assert.equal(q.choices.filter(x=>x===q.answer).length,1);
-   if(level==='CE2')assert.ok(verbs.slice(0,7).some(v=>v.infinitive===q.verb));
+   if(level==='CE2')assert.ok(allowedVerbs(level).some(v=>v.infinitive===q.verb));
   }
  }
 });

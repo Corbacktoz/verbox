@@ -6,7 +6,7 @@ import { routes, renderPage, robots, sitemap, publicOrigin } from './seo.js';
 
 const root=fileURLToPath(new URL('.',import.meta.url));
 const types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml','.png':'image/png'};
-export const publicFiles=['styles.css','app.js','core.js','site-content.js','design-tokens.css','design-system.css','assets/favicon.svg','assets/og-verbox.png'];
+export const publicFiles=['styles.css','app.js','core.js','learning.js','site-content.js','design-tokens.css','design-system.css','assets/favicon.svg','assets/og-verbox.png'];
 export const notFound={path:'/404.html',page:'404',noindex:true,title:'Page introuvable | Verbox',description:'Cette page Verbox n’existe pas. Retrouve les exercices et les fiches de conjugaison depuis l’accueil.'};
 export async function loadConfig(){const config=JSON.parse(await readFile(path.join(root,'site.config.json'),'utf8'));if(process.env.SITE_URL)config.siteUrl=process.env.SITE_URL;return config;}
 export function createServer({config,production=false}={}) {
