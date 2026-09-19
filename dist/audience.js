@@ -89,7 +89,7 @@ export function initAudience(win, doc) {
   win._paq = trackingCommands(settings);
   const script = doc.createElement('script');
   script.async = true;
-  script.src = settings.url + 'matomo.js';
+  script.src = settings.scriptUrl;
   script.referrerPolicy = 'no-referrer';
   // Defer the page view until the library is ready, and recheck opposition after loading.
   win._paq.pop();
