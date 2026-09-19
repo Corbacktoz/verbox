@@ -77,6 +77,25 @@ test('L’aperçu ne devient pas indexable et la production exige un domaine HTT
  for(const bad of ['http://verbox.example','https://localhost','https://127.0.0.1','https://verbox.example/sous-dossier','https://user:pass@verbox.example'])assert.throws(()=>publicOrigin(bad,true));
  assert.equal(publicOrigin('https://verbox.example/'),'https://verbox.example');
 });
+
+test('Indexation et maillage : exclusions explicites et pages à trois clics au maximum',()=>{
+ const excluded=['/progres/','/confidentialite/','/mentions-legales/'];
+ const xml=sitemap(config);
+ assert.deepEqual(routes.filter(r=>r.noindex).map(r=>r.path).sort(),excluded.sort());
+ const links=new Map();
+ for(const route of [...routes,notFound]){
+  const html=renderPage(template,route,config,true);
+  assert.equal(/name="robots" content="noindex/.test(html),!!route.noindex,route.path);
+  assert.equal(xml.includes(`<loc>${config.siteUrl}${route.path}</loc>`),!route.noindex,route.path);
+  links.set(route.path,[...html.matchAll(/href="(\/[^"#]*)"/g)].map(m=>new URL(m[1],config.siteUrl).pathname));
+ }
+ const distance=new Map([['/',0]]),queue=['/'];
+ while(queue.length){const page=queue.shift();for(const target of links.get(page)||[]){if(links.has(target)&&!distance.has(target)){distance.set(target,distance.get(page)+1);queue.push(target);}}}
+ for(const route of routes)assert.ok(distance.get(route.path)<=3,route.path);
+ assert.ok(!xml.includes('<lastmod>'),'Aucune date de build artificielle');
+ assert.ok(sitemap(config,[{...routes[0],updated:'2026-09-19'}]).includes('<lastmod>2026-09-19</lastmod>'));
+ for(const updated of ['2026-02-30','demain','2026-99-01'])assert.throws(()=>sitemap(config,[{...routes[0],updated}]));
+});
 test('Métadonnées échappées et page 404 sans application interactive',()=>{
  const html=metadata({...routes[0],title:'Un "titre" <script>'},config,true);
  assert.ok(html.includes('&quot;titre&quot; &lt;script&gt;'));
@@ -90,6 +109,14 @@ test('Build statique : vraies pages, ressources et fichiers robots dans une sort
  const parent=await realpath(tmpdir());const dir=await mkdtemp(path.join(parent,'verbox-seo-test-'));
  try{
   const result=await buildSite({config,output:pathToFileURL(dir+path.sep)});assert.equal(result.indexable,routes.filter(r=>!r.noindex).length);
+  const files=await readdir(dir,{recursive:true,withFileTypes:true});
+  const snapshot=new Map();
+  for(const file of files.filter(f=>f.isFile())){
+   const name=path.join(file.parentPath||file.path,file.name);
+   snapshot.set(name,await readFile(name));
+  }
+  await buildSite({config,output:pathToFileURL(dir+path.sep)});
+  for(const [name,bytes]of snapshot)assert.deepEqual(await readFile(name),bytes,`Build non déterministe : ${name}`);
   const home=await readFile(path.join(dir,'index.html'),'utf8');assert.ok(home.includes('index, follow, max-image-preview:large'));
   // Validate the actual static artifact: GitHub Pages cannot run server.js.
   for(const route of routes){
@@ -106,6 +133,8 @@ test('Build statique : vraies pages, ressources et fichiers robots dans une sort
   assert.ok((await readFile(path.join(dir,'404.html'),'utf8')).includes('noindex'));
   const lesson=await readFile(path.join(dir,'fiches','le-present','index.html'),'utf8');assert.ok(lesson.includes('Quand utiliser ce temps ?'));
   assert.ok((await readFile(path.join(dir,'sitemap.xml'),'utf8')).includes('https://verbox.example/'));
+  const redirects=await readFile(path.join(dir,'_redirects'),'utf8');
+  for(const route of routes)assert.ok(redirects.includes(`${route.path}index.html ${route.path} 301`));
   assert.ok(!(await readdir(dir)).includes('site.config.json'));assert.ok(!(await readdir(dir)).includes('design-preview.html'));
  }finally{
   const resolved=await realpath(dir);

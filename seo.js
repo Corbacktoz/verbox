@@ -52,7 +52,10 @@ export function robots(config,production=false) {
  // noindex pages remain crawlable so crawlers can read their directive.
  return `User-agent: *\nAllow: /\n${production?`\nSitemap: ${origin}/sitemap.xml\n`:'# Aperçu local : pages noindex, aucun sitemap public.\n'}`;
 }
-export function sitemap(config) {
+export function sitemap(config, pageRoutes=routes) {
  const origin=publicOrigin(config.siteUrl,true);
- return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${routes.filter(r=>!r.noindex).map(r=>`  <url><loc>${escapeHtml(origin+r.path)}</loc></url>`).join('\n')}\n</urlset>\n`;
+ return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${pageRoutes.filter(r=>!r.noindex).map(r=>{
+  if(r.updated&&(!/^\d{4}-\d{2}-\d{2}$/.test(r.updated)||!Number.isFinite(Date.parse(r.updated))||new Date(r.updated).toISOString().slice(0,10)!==r.updated))throw new Error('Date de mise à jour de route invalide.');
+  return `  <url><loc>${escapeHtml(origin+r.path)}</loc>${r.updated?`<lastmod>${r.updated}</lastmod>`:''}</url>`;
+ }).join('\n')}\n</urlset>\n`;
 }
