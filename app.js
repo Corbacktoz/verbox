@@ -87,6 +87,104 @@ document.querySelector('#sound-toggle')?.addEventListener('click', () => {
   updateSoundToggle();
   if (soundEnabled) playSound('correct');
 });
+
+const wardrobeDialog = document.querySelector('#wardrobe-dialog');
+const themes = [
+  { id: 'nature', name: 'Forêt & Lin', icon: '🌿', threshold: 0, desc: 'L’ambiance d’origine. Papier lin, vert sapin et terre cuite.', swatches: ['#265545', '#b9552f', '#e5cb81', '#f8f9f5', '#617f3f'] },
+  { id: 'midnight', name: 'Minuit Étoilé', icon: '🌙', threshold: 200, desc: 'Le Dark Mode spatial. Ciel nocturne, bleu royal et or lunaire.', swatches: ['#0b101b', '#131c2e', '#1e3a8a', '#6d28d9', '#fbbf24'] },
+  { id: 'arcade', name: 'Cyber Arcade', icon: '⚡', threshold: 450, desc: 'Néo-rétro dynamique. Fond ardoise feutré, cyan électrique et framboise.', swatches: ['#0f141c', '#18202c', '#164e63', '#9f1239', '#fde047'] },
+  { id: 'safari', name: 'Carnet d’Aventure', icon: '🧭', threshold: 750, desc: 'Esprit explorateur. Parchemin chaud, cuir havane et ambre d’Égypte.', swatches: ['#5c3317', '#9a3412', '#fcd34d', '#f3eedf', '#4d7c0f'] },
+  { id: 'aurora', name: 'Aurore Boréale', icon: '✨', threshold: 1200, desc: 'Prestige ultime. Noir émeraude abyssal, vert boréal et violet polaire.', swatches: ['#081419', '#0e222a', '#064e3b', '#6b21a8', '#7dd3fc'] }
+];
+
+let currentTheme = 'nature';
+try {
+  const savedTheme = localStorage.getItem('verbox-theme');
+  if (savedTheme && themes.some(t => t.id === savedTheme)) currentTheme = savedTheme;
+} catch {}
+
+function applyTheme(themeId) {
+  currentTheme = themeId;
+  if (typeof document !== 'undefined') {
+    if (themeId === 'nature') {
+      document.documentElement.removeAttribute('data-theme');
+      document.body?.removeAttribute('data-theme');
+    } else {
+      document.documentElement.setAttribute('data-theme', themeId);
+      document.body?.setAttribute('data-theme', themeId);
+    }
+    const avatarBtn = document.querySelector('#open-wardrobe');
+    if (avatarBtn) {
+      const cur = themes.find(t => t.id === themeId);
+      avatarBtn.textContent = cur ? cur.icon : '☺';
+    }
+  }
+  try { localStorage.setItem('verbox-theme', themeId); } catch {}
+}
+applyTheme(currentTheme);
+
+function setTheme(themeId) {
+  const t = themes.find(x => x.id === themeId);
+  if (!t || state.points < t.threshold) return;
+  withViewTransition(() => {
+    applyTheme(themeId);
+    render();
+    if (wardrobeDialog?.open) renderWardrobe();
+  });
+}
+
+function renderThemesList() {
+  return `<div class="theme-grid" role="list">${themes.map(t => {
+    const isUnlocked = state.points >= t.threshold;
+    const isActive = currentTheme === t.id;
+    return `<div class="theme-card ${isActive ? 'active' : ''}" role="listitem">
+      <div class="theme-card-top">
+        <div class="theme-card-info">
+          <h3>${t.icon} ${t.name}</h3>
+          <p>${t.desc}</p>
+        </div>
+        <span class="theme-badge ${isActive ? 'active' : isUnlocked ? 'unlocked' : 'locked'}">
+          ${isActive ? 'Actif' : isUnlocked ? 'Débloqué' : '🔒 ' + t.threshold + ' pts'}
+        </span>
+      </div>
+      <div class="theme-swatches" aria-hidden="true">
+        ${t.swatches.map(c => `<span class="theme-swatch" style="background:${c}"></span>`).join('')}
+      </div>
+      <div class="theme-card-action">
+        <small>${t.threshold === 0 ? 'Disponible au départ' : 'Requis : ' + t.threshold + ' points'}</small>
+        ${isActive ? '<span style="font-size:var(--font-size-caption);font-weight:700;color:var(--color-accent);">Thème en cours</span>' : isUnlocked ? `<button class="secondary-button" data-select-theme="${t.id}" style="min-height:36px;padding:4px 12px;font-size:var(--font-size-caption);">Activer</button>` : `<small style="color:var(--color-muted);">Encore ${t.threshold - state.points} pts</small>`}
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function renderWardrobe() {
+  if (!wardrobeDialog) return;
+  const nextTheme = themes.find(t => state.points < t.threshold);
+  wardrobeDialog.innerHTML = `
+    <header class="wardrobe-header">
+      <div>
+        <h2 id="wardrobe-title">Mon vestiaire d’ambiance</h2>
+        <small>Débloque de nouveaux styles avec tes points cumulés</small>
+      </div>
+      <button class="close-button" aria-label="Fermer le vestiaire" id="close-wardrobe">${icon('close')}</button>
+    </header>
+    ${nextTheme ? `<p class="storage-warning" style="background:var(--color-surface-warm);color:var(--color-ink);border:1px solid var(--color-border-strong);margin-bottom:var(--space-4);">Prochain déblocage : <strong>${nextTheme.name}</strong> à ${nextTheme.threshold} points (encore ${nextTheme.threshold - state.points} pts) !</p>` : '<p class="storage-warning" style="background:var(--color-success-soft);color:var(--color-success);border:1px solid var(--color-success);margin-bottom:var(--space-4);">Félicitations ! Tu as débloqué tous les thèmes de Verbox !</p>'}
+    ${renderThemesList()}
+  `;
+  wardrobeDialog.querySelector('#close-wardrobe')?.addEventListener('click', () => wardrobeDialog.close());
+  wardrobeDialog.querySelectorAll('[data-select-theme]').forEach(btn => {
+    btn.addEventListener('click', () => setTheme(btn.dataset.selectTheme));
+  });
+}
+
+function openWardrobe() {
+  if (!wardrobeDialog) return;
+  renderWardrobe();
+  wardrobeDialog.showModal();
+}
+document.querySelector('#open-wardrobe')?.addEventListener('click', openWardrobe);
+
 const main = document.querySelector('#main');
 const dialog = document.querySelector('#quiz-dialog');
 const KEY = 'verbox-progress-v1';
@@ -167,20 +265,23 @@ function renderJourney(detailed) {
  return `<section class="journey-card"><div class="section-title"><h2>Mon voyage ${level}</h2><span>${chapters.filter(x=>x.done).length} / 6 étapes</span></div><ol class="journey-stops">${chapters.map(c=>`<li class="${c.done?'done':c.available?'current':'waiting'}"><span aria-hidden="true">${c.done?'✓':c.index+1}</span><strong>${c.name}</strong><small>${c.done?'Étape accomplie':c.available?'En cours':'À débloquer'}</small>${detailed?`<p>${c.description}</p><small>${c.value} / ${c.target}</small>`:''}</li>`).join('')}</ol>${next?`<p><b>${next.description}</b> · ${next.value} / ${next.target}</p>${detailed?'':'<button class="secondary-button" id="journey-quiz">Continuer mon voyage</button>'}`:'<p>Voyage accompli ! Continue à explorer les verbes et à consolider tes découvertes.</p>'}<p class="journey-note">Toutes les activités restent accessibles. Tes étapes ne disparaissent jamais.</p></section>`;
 }
 function renderProgress() {
- const total=totalAnswers();
- main.innerHTML=`<div class="greeting"><div><h1>Regarde tes progrès <span class="wave" aria-hidden="true">✦</span></h1><p>Chaque entraînement compte. Continue comme ça !</p></div></div><div class="stats-grid"><div class="stat-card"><strong>${state.points}</strong><span>points gagnés</span></div><div class="stat-card"><strong>${state.sessions.length}</strong><span>séries terminées</span></div><div class="stat-card"><strong>${total?Math.round(totalCorrect()/total*100):0}%</strong><span>de bonnes réponses</span></div></div>${renderJourney(true)}<section class="content-panel"><h2>Mes petits trophées</h2><div class="badge-gallery">${[0,1,2].map(i=>badge(i,true)).join('')}</div></section><section class="content-panel"><h2>Mes derniers entraînements</h2>${state.sessions.length?state.sessions.slice(-10).reverse().map(s=>`<div class="history-row"><div><b>${s.tense==='mixed'?'Temps mélangés':tenses[s.tense].name}</b><br><small>${s.level} · ${s.mode==='timed'?'Défi chrono':'Entraînement'}</small></div><div>${s.correct}/${s.answered} réussies<br><small>${new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'short'}).format(new Date(s.date))}</small></div><strong>+${s.points} pts</strong></div>`).join(''):'<p>Ton aventure commence ici ! Termine une première série pour découvrir tes progrès.</p><button class="primary-button spaced-action" data-page="accueil">Je m’entraîne '+icon('arrow')+'</button>'}<p class="privacy-note">Tes progrès sont enregistrés uniquement dans ce navigateur, sur cet appareil.</p></section>`;
+  const total=totalAnswers();
+  main.innerHTML=`<div class="greeting"><div><h1>Regarde tes progrès <span class="wave" aria-hidden="true">✦</span></h1><p>Chaque entraînement compte. Continue comme ça !</p></div></div><div class="stats-grid"><div class="stat-card"><strong>${state.points}</strong><span>points gagnés</span></div><div class="stat-card"><strong>${state.sessions.length}</strong><span>séries terminées</span></div><div class="stat-card"><strong>${total?Math.round(totalCorrect()/total*100):0}%</strong><span>de bonnes réponses</span></div></div>${renderJourney(true)}<section class="content-panel"><h2>Mes petits trophées</h2><div class="badge-gallery">${[0,1,2].map(i=>badge(i,true)).join('')}</div></section><section class="content-panel"><div class="section-title"><h2>Mon vestiaire d’ambiance</h2><span>${themes.filter(t=>state.points>=t.threshold).length} / ${themes.length} débloqués</span></div><p>Choisis ton ambiance préférée pour t’entraîner.</p>${renderThemesList()}</section><section class="content-panel"><h2>Mes derniers entraînements</h2>${state.sessions.length?state.sessions.slice(-10).reverse().map(s=>`<div class="history-row"><div><b>${s.tense==='mixed'?'Temps mélangés':tenses[s.tense].name}</b><br><small>${s.level} · ${s.mode==='timed'?'Défi chrono':'Entraînement'}</small></div><div>${s.correct}/${s.answered} réussies<br><small>${new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'short'}).format(new Date(s.date))}</small></div><strong>+${s.points} pts</strong></div>`).join(''):'<p>Ton aventure commence ici ! Termine une première série pour découvrir tes progrès.</p><button class="primary-button spaced-action" data-page="accueil">Je m’entraîne '+icon('arrow')+'</button>'}<p class="privacy-note">Tes progrès sont enregistrés uniquement dans ce navigateur, sur cet appareil.</p></section>`;
+  main.querySelectorAll('[data-select-theme]').forEach(btn=>btn.addEventListener('click',()=>setTheme(btn.dataset.selectTheme)));
 }
 function renderMemos() { main.innerHTML=renderContent({page:'fiches'}); }
 function renderLessonPage() { main.innerHTML=renderContent({page:'lecon',tense:document.body.dataset.tense}); }
 function renderHelp() { main.innerHTML=renderContent({page:'aide'}); }
 function render() {
- document.querySelector('#total-points').textContent=state.points;
- document.querySelector('#page-label').textContent={accueil:'Mon entraînement',progres:'Mes progrès',fiches:'Mes fiches mémo',aide:'Comment ça marche ?',lecon:'Fiches de conjugaison'}[page];
- const activeNav=(page==='fiches'||page==='lecon')?'fiches':page;
- document.querySelectorAll('.nav-item').forEach(btn=>{const isCurrent=btn.dataset.page===activeNav;btn.classList.toggle('active',isCurrent);if(isCurrent)btn.setAttribute('aria-current','page');else btn.removeAttribute('aria-current');});
- updateSoundToggle();
- ({accueil:renderHome,progres:renderProgress,fiches:renderMemos,aide:renderHelp,lecon:renderLessonPage}[page])();
- main.querySelectorAll('[data-page]').forEach(btn=>btn.addEventListener('click',()=>navigate(btn.dataset.page)));
+  document.querySelector('#total-points').textContent=state.points;
+  document.querySelector('#page-label').textContent={accueil:'Mon entraînement',progres:'Mes progrès',fiches:'Mes fiches mémo',aide:'Comment ça marche ?',lecon:'Fiches de conjugaison'}[page];
+  const activeNav=(page==='fiches'||page==='lecon')?'fiches':page;
+  document.querySelectorAll('.nav-item').forEach(btn=>{const isCurrent=btn.dataset.page===activeNav;btn.classList.toggle('active',isCurrent);if(isCurrent)btn.setAttribute('aria-current','page');else btn.removeAttribute('aria-current');});
+  updateSoundToggle();
+  const avatarBtn=document.querySelector('#open-wardrobe');
+  if(avatarBtn){const cur=themes.find(t=>t.id===currentTheme);avatarBtn.textContent=cur?cur.icon:'☺';}
+  ({accueil:renderHome,progres:renderProgress,fiches:renderMemos,aide:renderHelp,lecon:renderLessonPage}[page])();
+  main.querySelectorAll('[data-page]').forEach(btn=>btn.addEventListener('click',()=>navigate(btn.dataset.page)));
 }
 function navigate(next) { location.assign({accueil:'/',progres:'/progres/',fiches:'/fiches/',aide:'/aide/'}[next] || '/'); }
 // Public navigation uses native links so URLs work without JavaScript.
