@@ -13,6 +13,8 @@ for(const file of publicFiles){const target=new URL(file,output);await mkdir(new
 await writeFile(new URL('404.html',output),renderPage(template,notFound,config,true));
 await writeFile(new URL('robots.txt',output),robots(config,true));
 await writeFile(new URL('sitemap.xml',output),sitemap(config));
+await writeFile(new URL('.nojekyll',output),'');
+await writeFile(new URL('CNAME',output),new URL(config.siteUrl).hostname+'\n');
 await writeFile(new URL('_headers',output),'/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n/progres/*\n  X-Robots-Tag: noindex, follow\n/404.html\n  X-Robots-Tag: noindex, follow\n');
 await writeFile(new URL('_redirects',output),routes.map(r=>`${r.path}index.html ${r.path} 301`).join('\n')+'\n/* /404.html 404\n');
 return {pages:routes.length,indexable:routes.filter(r=>!r.noindex).length};

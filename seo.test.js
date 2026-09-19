@@ -57,6 +57,19 @@ test('Build statique : vraies pages, ressources et fichiers robots dans une sort
  try{
   const result=await buildSite({config,output:pathToFileURL(dir+path.sep)});assert.equal(result.indexable,12);
   const home=await readFile(path.join(dir,'index.html'),'utf8');assert.ok(home.includes('index, follow, max-image-preview:large'));
+  // Validate the actual static artifact: GitHub Pages cannot run server.js.
+  for(const route of routes){
+   const html=await readFile(path.join(dir,route.path.slice(1),'index.html'),'utf8');
+   assert.ok(html.includes('<h1'),route.path);
+   for(const [,href]of html.matchAll(/(?:href|src)="(\/[^"#]*)"/g)){
+    const pathname=new URL(href,config.siteUrl).pathname;
+    const file=pathname.endsWith('/')?pathname+'index.html':pathname;
+    assert.ok((await readFile(path.join(dir,file.slice(1)))).length,`Ressource manquante : ${href}`);
+   }
+  }
+  assert.equal(await readFile(path.join(dir,'CNAME'),'utf8'),'verbox.example\n');
+  assert.equal(await readFile(path.join(dir,'.nojekyll'),'utf8'),'');
+  assert.ok((await readFile(path.join(dir,'404.html'),'utf8')).includes('noindex'));
   const lesson=await readFile(path.join(dir,'fiches','le-present','index.html'),'utf8');assert.ok(lesson.includes('Quand utiliser ce temps ?'));
   assert.ok((await readFile(path.join(dir,'sitemap.xml'),'utf8')).includes('https://verbox.example/'));
   assert.ok(!(await readdir(dir)).includes('site.config.json'));assert.ok(!(await readdir(dir)).includes('design-preview.html'));
