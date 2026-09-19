@@ -1,4 +1,4 @@
-import { homeGuide, renderContent, levelPath } from './site-content.js';
+import { homeGuide, renderContent, levelPath, levelDescriptions } from './site-content.js';
 import { tenses, verbs, persons, levelTenses, scoreAnswer, localDate, phrase } from './core.js';
 import {formats,sanitizeLearning,makeSession,recordAnswer,isCorrect,learningStats,journey,dailyMission} from './learning.js';
 const escapeHTML=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -70,7 +70,7 @@ function renderHome() {
  const daily=todayPoints();
  const stats=learningStats(level,state.learning),mission=dailyMission(level,state.sessions);
  main.innerHTML=`${!storageAvailable?'<p class="storage-warning">La sauvegarde est indisponible dans ce navigateur. Tu peux jouer, mais tes progrès ne seront pas conservés après fermeture.</p>':''}
- <div class="greeting"><div><h1>${document.body.dataset.level ? `Conjugaison ${level}` : 'À toi de conjuguer !'} <span class="wave">👋</span></h1><p>Des exercices de conjugaison du CE2 au CM2.</p></div><span class="date-label">${icon('calendar')}${new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'long'}).format(new Date())}</span></div>
+ <div class="greeting"><div><h1>${document.body.dataset.level ? `Conjugaison ${level}` : 'À toi de conjuguer !'} <span class="wave">👋</span></h1><p>${document.body.dataset.level ? levelDescriptions[level] : 'Des exercices de conjugaison du CE2 au CM2.'}</p></div><span class="date-label">${icon('calendar')}${new Intl.DateTimeFormat('fr-FR',{day:'numeric',month:'long'}).format(new Date())}</span></div>
  <div class="dashboard"><section class="training-column" aria-label="Choisir un entraînement">
  <div class="hero"><div class="hero-copy"><div class="eyebrow">✦ L’AVENTURE DES MOTS</div><h2>Les verbes n’ont qu’à<br><span>bien se tenir.</span></h2><p>Choisis ton niveau, relève le défi et fais grandir ton talent de conjugueur !</p></div>${art}</div>
  <div class="level-section"><span class="section-label">${icon('cap')}Je suis en</span><div class="levels" role="group" aria-label="Ton niveau scolaire">${Object.keys(levelTenses).map(l=>`<button class="level-button ${level===l?'active':''}" data-level="${l}" aria-pressed="${level===l}">${l}</button>`).join('')}</div></div>

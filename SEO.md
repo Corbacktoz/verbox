@@ -99,3 +99,5 @@ Sur la base `47eaa6d`, la feuille CSS passe de 523 331 à 37 543 octets (fichier
 Le nombre de tests de l’ancien audit était périmé : avant ces travaux, 21 tests fonctionnels et d’audience et 7 tests SEO passent sur cette base. Les performances réseau et l’indexation ne se déduisent pas de la seule taille du CSS.
 
 Les routes `/a-propos/` (indexable) et `/mentions-legales/` (noindex) sont ajoutées. Les attentes de taille du sitemap sont désormais calculées à partir des routes ; le nombre historique de douze pages ci-dessus décrit l’audit initial.
+
+Les trois pages de niveau ont une introduction et une méthode distinctes. Le contenu est évalué sur ses informations utiles, sans quota de mots. Les listes de verbes proviennent de `allowedVerbs(level)` ; les exemples et corrections sont testés contre les données. Une relecture pédagogique reste nécessaire avant publication.

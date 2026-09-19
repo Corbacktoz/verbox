@@ -36,6 +36,7 @@ verbs.push(
 );
 export function allowedVerbs(level) { return level==='CE2'?verbs.filter(v=>v.infinitive.endsWith('er')||['être','avoir'].includes(v.infinitive)):verbs; }
 for (const verb of verbs) {
+  verb.group = verb.infinitive.endsWith('er') ? 1 : verb.infinitive.endsWith('ir') && verb.present[3].endsWith('issons') ? 2 : 3;
   verb.compose = forms('ai|as|a|avons|avez|ont').map(a => `${a} ${verb.participle}`);
   verb.parfait = forms('avais|avais|avait|avions|aviez|avaient').map(a => `${a} ${verb.participle}`);
 }

@@ -86,3 +86,5 @@ npm run design:check
 `dist/` est généré et ignoré par Git. Une copie propre des sources suffit : `npm run build` crée le dossier publié par GitHub Actions. Le formatage CSS ne change que les espaces en début de ligne ; les sélecteurs et les valeurs restent identiques. Le contrôle de design limite la feuille à 80 Ko et l’indentation à huit espaces.
 
 Les pages `/a-propos/` et `/mentions-legales/` présentent le projet, le contact et l’hébergement. Elles restent lisibles sans JavaScript. L’adresse de GitHub est configurable dans `privacy.hostAddress`.
+
+Les pages CE2, CM1 et CM2 présentent leur sélection réelle de verbes par groupe, leurs temps, des exemples et trois erreurs expliquées. Ces guides restent accessibles avant JavaScript et accompagnent les exercices.
