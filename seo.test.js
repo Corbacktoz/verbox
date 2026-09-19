@@ -55,6 +55,24 @@ test('Les fiches verbe comportent six tableaux accessibles et des introductions 
  assert.equal(new Set(intros).size,intros.length,'Premiers paragraphes indexables distincts');
 });
 
+test('HTML accessible : langue, identifiants uniques, titres, tableaux et scripts modules',()=>{
+ for(const route of [...routes,notFound]){
+  const html=renderPage(template,route,config,true);
+  assert.ok(html.includes('lang="fr"'));
+  const ids=[...html.matchAll(/\sid="([^"]+)"/g)].map(m=>m[1]);
+  assert.equal(new Set(ids).size,ids.length,`Identifiants dupliqués : ${route.path}`);
+  for(const [img]of html.matchAll(/<img\b[^>]*>/g))assert.match(img,/\balt="[^"]*"/);
+  let previous=0;
+  for(const [,level]of html.matchAll(/<h([1-6])\b/g)){
+   assert.ok(Number(level)<=previous+1,`Saut de titre : ${route.path}`);previous=Number(level);
+  }
+  for(const [table]of html.matchAll(/<table\b[\s\S]*?<\/table>/g)){
+   assert.match(table,/<caption>[^<]+<\/caption>/);assert.match(table,/scope="col"/);assert.match(table,/scope="row"/);
+  }
+  for(const [script]of html.matchAll(/<script\b[^>]*\bsrc="[^"]+"[^>]*>/g))assert.match(script,/type="module"/);
+ }
+});
+
 test('Informations du projet : contact configuré, adresse échappée et mentions hors sitemap',()=>{
  const configured={...config,privacy:{editorName:'Éditeur <test>',contactEmail:'contact@example.test',hostAddress:'Adresse & suite'}};
  for(const page of ['apropos','mentions']){
