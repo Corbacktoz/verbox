@@ -107,3 +107,19 @@ Le hub et les dix pages de verbes sont indexables dans le build de production, a
 ## Contrôles des routes
 
 Toutes les routes restent accessibles en trois clics au plus depuis l’accueil. Le sitemap exclut explicitement progrès, confidentialité, mentions légales et 404. Un champ optionnel `updated` accepte une date réelle au format AAAA-MM-JJ ; aucune route ne reçoit automatiquement la date du build. Deux builds successifs sont comparés octet par octet. Les variantes `index.html` sont listées dans `_redirects`, mais ce fichier ne crée pas de redirection sur GitHub Pages : les canoniques HTML restent essentielles. IndexNow n’est pas activé.
+
+## Performance mesurée le 19 septembre 2026
+
+Lighthouse 12.8.2, profil mobile par défaut et réseau/CPU simulés, Chrome headless local. Même machine et serveur HTTP statique sans compression : artefact initial 47eaa6d sur localhost:5181, artefact a29e085 sur localhost:5182. Une mesure par page et par état ; ces résultats ne sont pas des médianes ni une mesure de production. Matomo ne se charge pas sur localhost. Les valeurs détaillées et paramètres figurent dans PERFORMANCE-MEASUREMENTS.json.
+
+| Page | Score avant → après | LCP avant → après | TBT avant → après | CLS |
+| --- | --- | --- | --- | --- |
+| Accueil | 73 → 98 | 4,40 s → 2,09 s | 0 → 10,5 ms | 0 → 0 |
+| CE2 | 74 → 98 | 4,39 s → 2,08 s | 0 → 15 ms | 0 → 0 |
+| Présent | 75 → 98 | 4,38 s → 2,09 s | 0 → 0 ms | 0 → 0 |
+
+Commande : npx --yes lighthouse@12.8.2 URL --only-categories=performance --chrome-flags="--headless=new" --output=json --output-path=RAPPORT.json. Outil ponctuel, aucune dépendance ajoutée au projet.
+
+Les objectifs LCP ≤ 2,5 s et CLS ≤ 0,1 sont atteints dans ces simulations. Lighthouse au chargement ne mesure pas l’INP : il reste à vérifier par des interactions et, si disponibles, les données terrain de Search Console. Le TBT est un indicateur de diagnostic, pas une mesure de l’INP.
+
+Le gain observé accompagne la correction de l’indentation, ainsi que les nouveaux contenus et modules ; il ne constitue pas une expérience isolant chaque modification. Les trois feuilles CSS restent séparées, sans minification artisanale. app.js et audience.js sont des modules, et le contenu public est prérendu. L’image de partage mesure déjà 15 081 octets pour 1200 × 630 : aucune recompression nécessaire. La CSP optionnelle n’est pas ajoutée : les styles dynamiques du quiz demanderaient un traitement dédié et vérifié.
