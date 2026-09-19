@@ -36,6 +36,23 @@ npm run design:check
 
 ## Publication
 
+### GitHub Pages — verbox.fr
+
+Le workflow `.github/workflows/pages.yml` teste le site, lance `npm run build` et publie **le contenu de `dist/`** à chaque modification de `main`. Les pull requests exécutent les contrôles sans publier.
+
+Configuration initiale dans le dépôt GitHub :
+
+1. Dans **Settings → Pages → Build and deployment → Source**, sélectionner **GitHub Actions**.
+2. Conserver **verbox.fr** dans **Custom domain** et activer **Enforce HTTPS** lorsque GitHub le permet.
+3. Fusionner le correctif de déploiement dans `main`. Si le workflow avait déjà démarré avant le changement de source, le relancer depuis **Actions → Deploy Verbox to GitHub Pages → Run workflow**.
+4. Vérifier `/fiches/`, `/fiches/le-present/`, `/conjugaison-ce2/`, `/conjugaison-cm1/`, `/conjugaison-cm2/`, `/aide/`, `/progres/`, `/robots.txt` et `/sitemap.xml` sur le domaine public. Une URL inexistante doit conserver un statut 404.
+
+Publier `main / (root)` directement expose le modèle de développement : `/fiches/` n'existe pas à cet emplacement, ce qui provoque les erreurs 404. GitHub Pages n'exécute pas `server.js` et n'interprète pas `_redirects` ni `_headers`. Les vrais fichiers `fiches/index.html`, etc., doivent être à la racine de l'artefact publié. Le build fournit aussi `404.html`, `.nojekyll` et `CNAME`.
+
+Documentation : [publication par GitHub Actions](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
+
+### Autres hébergements
+
 L’origine officielle `https://verbox.fr` est configurée dans `site.config.json`. Lancer `npm run build`, puis publier **uniquement le contenu de `dist/`** à la racine de ce domaine : il contient les pages HTML prérendues, les ressources, `robots.txt`, `sitemap.xml` et une page 404. Ne pas publier directement les sources : le modèle `index.html` est volontairement non indexable.
 
 Sans nom de domaine configuré, le build de production refuse de générer des URL fictives. La variable d’environnement `SITE_URL` peut remplacer la valeur du fichier de configuration dans l’hébergement.
