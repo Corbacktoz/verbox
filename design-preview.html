@@ -143,6 +143,7 @@ button { font-family: var(--font-body); }
 }
 .lesson p, .lesson-bottom, .mode small { font-size: var(--font-size-caption); }
 .mode strong, .nav-item { font-size: var(--font-size-small); }
+.nav-item { color: var(--color-muted); }
 .mode.active { border-color: var(--color-success); background: var(--color-surface-soft); }
 .nav-item.active { color: var(--color-brand); background: var(--color-surface-soft); }
 .level-button.active { color: var(--color-brand); }
@@ -233,6 +234,11 @@ dialog { box-shadow: var(--shadow-dialog); }
  .journey-card .section-title { align-items: flex-start; gap: var(--space-2); flex-wrap: wrap; }
  .quiz-status { flex-wrap: wrap; gap: var(--space-2); }
  .context-sentence { font-size: var(--font-size-subtitle); }
+}
+@media (forced-colors: active) {
+  .progress-track span { background: Highlight; }
+  .answer.correct { outline: 2px solid Highlight; }
+  .answer.wrong { outline: 2px dashed LinkText; }
 }
 
 @media(max-width:600px){main{padding:20px 16px}section,header{padding:20px}.swatches{grid-template-columns:repeat(2,minmax(0,1fr))}.lesson{min-width:100%}.viewport-demo{padding:16px}.answer{font-size:14px}}

@@ -108,7 +108,7 @@ svg{
   font-size:var(--font-size-small);
   text-align:left;
   margin-bottom:var(--space-2);
-  color:var(--color-subtle)}
+  color:var(--color-muted)}
 .nav-item.active{
   background:var(--color-surface-soft);
   color:var(--green);

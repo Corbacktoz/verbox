@@ -37,9 +37,11 @@ export function renderPage(template,route,config,production=false) {
  const audience=audienceConfig(config);
  const clientConfig=production&&audience ? {...audience,pageUrl:route.noindex?null:publicOrigin(config.siteUrl,true)+route.path,pageTitle:route.title} : null;
  template=template.replace('<!-- AUDIENCE_CONFIG -->',`<script type="application/json" id="audience-config">${JSON.stringify(clientConfig).replace(/</g,'\\u003c')}</script>`);
- if(['404','confidentialite','apropos','mentions'].includes(route.page))template=template.replace(/<script type="module" src="\/app.js"><\/script>/,'').replace('class="nav-item active"','class="nav-item"');
- if(route.page==='apropos'||route.page==='mentions')template=template.replace('id="page-label">Mon entraînement',`id="page-label">${route.page==='apropos'?'À propos':'Mentions légales'}`);
- if(route.page==='confidentialite')template=template.replace('id="page-label">Mon entraînement','id="page-label">Confidentialité');
+ if(['404','confidentialite','apropos','mentions'].includes(route.page))template=template.replace(/<script type="module" src="\/app.js"><\/script>/,'');
+ const navPage=route.page==='accueil'?'accueil':route.page==='progres'?'progres':(route.page==='fiches'||route.page==='lecon')?'fiches':null;
+ if(navPage)template=template.replace(`class="nav-item" data-page="${navPage}"`,`class="nav-item active" aria-current="page" data-page="${navPage}"`);
+ const pageLabels={accueil:'Mon entraînement',progres:'Mes progrès',fiches:'Mes fiches mémo',aide:'Comment ça marche ?',lecon:'Fiches de conjugaison',apropos:'À propos',mentions:'Mentions légales',confidentialite:'Confidentialité'};
+ if(pageLabels[route.page])template=template.replace('id="page-label">Mon entraînement',`id="page-label">${pageLabels[route.page]}`);
  return template.replace(/<!-- SEO_START -->[\s\S]*?<!-- SEO_END -->/,`<!-- SEO_START -->${metadata(route,config,production)}<!-- SEO_END -->`)
  .replace('<body>',`<body data-page="${route.page}" data-level="${route.level||''}" data-tense="${route.tense||''}">`)
  .replace(/<main id="main" tabindex="-1">[\s\S]*?<\/main>/,`<main id="main" tabindex="-1">${renderContent(route,config)}</main>`)
