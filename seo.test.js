@@ -18,7 +18,7 @@ test('Pages publiques : HTML lisible, titre unique, canonique et données struct
   assert.equal((html.match(/<title>/g)||[]).length,1);
   assert.ok(html.includes(`rel="canonical" href="${config.siteUrl}${route.path}"`));
   assert.ok(html.includes(route.noindex?'content="noindex, follow"':'content="index, follow, max-image-preview:large"'));
-  assert.ok(html.includes('src="/app.js"'));
+  assert.equal(html.includes('src="/app.js"'),route.page!=='confidentialite');
   assert.ok(!html.includes('Conjugo'));
   const graph=JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
   assert.equal(graph['@graph'][0].name,'Verbox');

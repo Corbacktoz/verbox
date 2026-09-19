@@ -1,4 +1,5 @@
 import { routes, renderContent, lessonPath } from './site-content.js';
+import { audienceConfig } from './audience-config.js';
 export { routes };
 export const escapeHtml = value => String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function publicOrigin(value, required=false) {
@@ -32,10 +33,14 @@ export function metadata(route, config, production=false) {
   ${graph.length?`<script type="application/ld+json">${JSON.stringify({'@context':'https://schema.org','@graph':graph}).replace(/</g,'\\u003c')}</script>`:''}`;
 }
 export function renderPage(template,route,config,production=false) {
- if(route.page==='404')template=template.replace(/<script type="module" src="\/app.js"><\/script>/,'');
+ const audience=audienceConfig(config);
+ const clientConfig=production&&audience ? {...audience,pageUrl:route.noindex?null:publicOrigin(config.siteUrl,true)+route.path,pageTitle:route.title} : null;
+ template=template.replace('<!-- AUDIENCE_CONFIG -->',`<script type="application/json" id="audience-config">${JSON.stringify(clientConfig).replace(/</g,'\\u003c')}</script>`);
+ if(route.page==='404'||route.page==='confidentialite')template=template.replace(/<script type="module" src="\/app.js"><\/script>/,'');
+ if(route.page==='confidentialite')template=template.replace('id="page-label">Mon entraînement','id="page-label">Confidentialité');
  return template.replace(/<!-- SEO_START -->[\s\S]*?<!-- SEO_END -->/,`<!-- SEO_START -->${metadata(route,config,production)}<!-- SEO_END -->`)
  .replace('<body>',`<body data-page="${route.page}" data-level="${route.level||''}" data-tense="${route.tense||''}">`)
- .replace(/<main id="main" tabindex="-1">[\s\S]*?<\/main>/,`<main id="main" tabindex="-1">${renderContent(route)}</main>`);
+ .replace(/<main id="main" tabindex="-1">[\s\S]*?<\/main>/,`<main id="main" tabindex="-1">${renderContent(route,config)}</main>`);
 }
 export function robots(config,production=false) {
  const origin=publicOrigin(config.siteUrl,production);
