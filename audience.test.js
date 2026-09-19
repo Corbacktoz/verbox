@@ -87,6 +87,10 @@ test('Every generated page has no Google loader; personal and privacy routes are
     assert.doesNotMatch(html,/googletagmanager\.com|google-analytics\.com|fonts\.googleapis\.com|fonts\.gstatic\.com/);
     const data=JSON.parse(html.match(/id="audience-config">(.*?)<\/script>/)[1]);
     assert.equal(data.pageUrl,route.noindex?null:'https://verbox.fr'+route.path);
+    const normal=browser({data});
+    assert.equal(normal.scripts.length,route.noindex?0:1,route.path);
+    if(!route.noindex){normal.scripts[0].onload();assert.equal(normal.win._paq.filter(([c])=>c==='trackPageView').length,1);}
+    for(const preference of [{value:'1'},{navigator:{doNotTrack:'1'}},{navigator:{globalPrivacyControl:true}},{storageError:true}])assert.equal(browser({data,...preference}).scripts.length,0,route.path);
     assert.ok(html.includes('href="/confidentialite/"'));
   }
   const preview=renderPage(template,routes[0],config,false);

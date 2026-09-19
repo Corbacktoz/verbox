@@ -10,7 +10,9 @@ export function renderProject(page, config = {}) {
     <div class="greeting"><div><h1>${title}</h1><p>${legal ? 'Les informations sur l’éditeur et l’hébergement du site.' : 'Un espace pour pratiquer la conjugaison, à ton rythme.'}</p></div></div>
     <article class="content-panel privacy-content">${legal ? `
       <h2>Éditeur et contact</h2>
+      <p>Verbox est un site personnel édité à titre non professionnel.</p>
       <p>Verbox est édité par ${escape(privacy.editorName || 'Éditeur non renseigné')}. Pour contacter l’éditeur : ${contactLink}.</p>
+      <p>Directeur de la publication : ${escape(privacy.editorName || 'Éditeur non renseigné')}.</p>
       <h2>Hébergement</h2>
       <p>Le site est hébergé par GitHub, Inc., avec le service GitHub Pages.</p>
       ${privacy.hostAddress ? `<p>Adresse : ${escape(privacy.hostAddress)}.</p>` : '<p>L’adresse de l’hébergeur reste à renseigner par l’éditeur.</p>'}

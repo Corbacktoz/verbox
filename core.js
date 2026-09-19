@@ -1,8 +1,8 @@
 export const persons = ['je', 'tu', 'il / elle', 'nous', 'vous', 'ils / elles'];
 export const tenses = {
-  present: { name: 'Le présent', subtitle: 'Ce qui se passe maintenant', color: 'sage', icon: 'sun', example: 'Je joue dans le jardin.', tip: 'Au présent, les verbes en -er prennent : -e, -es, -e, -ons, -ez, -ent.' },
+  present: { name: 'Le présent', subtitle: 'Ce qui se passe maintenant', color: 'sage', icon: 'sun', example: 'Je joue dans le jardin.', tip: 'Au présent, les verbes du premier groupe prennent : -e, -es, -e, -ons, -ez, -ent.' },
   imparfait: { name: 'L’imparfait', subtitle: 'Les habitudes d’autrefois', color: 'peach', icon: 'rewind', example: 'Je jouais dans le jardin.', tip: 'À l’imparfait, les terminaisons sont : -ais, -ais, -ait, -ions, -iez, -aient.' },
-  futur: { name: 'Le futur', subtitle: 'Ce qui se passera demain', color: 'lavender', icon: 'arrow', example: 'Je jouerai dans le jardin.', tip: 'Au futur, les terminaisons sont : -ai, -as, -a, -ons, -ez, -ont. Pour les verbes en -er, on les ajoute à l’infinitif.' },
+  futur: { name: 'Le futur', subtitle: 'Ce qui se passera demain', color: 'lavender', icon: 'arrow', example: 'Je jouerai dans le jardin.', tip: 'Au futur, les terminaisons sont : -ai, -as, -a, -ons, -ez, -ont. Pour chanter et jouer, on les ajoute à l’infinitif.' },
   compose: { name: 'Le passé composé', subtitle: 'Les actions déjà terminées', color: 'yellow', icon: 'check', example: 'J’ai joué dans le jardin.', tip: 'Le passé composé se construit avec avoir ou être au présent, suivi du participe passé. Ici, on s’entraîne avec avoir.' },
   simple: { name: 'Le passé simple', subtitle: 'Le temps des récits', color: 'blue', icon: 'book', example: 'Il joua dans le jardin.', tip: 'Dans les récits, on rencontre souvent le passé simple à la 3e personne : il joua, ils jouèrent ; il finit, ils finirent.' },
   parfait: { name: 'Le plus-que-parfait', subtitle: 'Avant une autre action passée', color: 'pink', icon: 'history', example: 'J’avais joué avant de dîner.', tip: 'Le plus-que-parfait se construit avec avoir ou être à l’imparfait, suivi du participe passé. Ici, on s’entraîne avec avoir.' }

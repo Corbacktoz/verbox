@@ -1,6 +1,7 @@
 import { homeGuide, renderContent, levelPath, levelDescriptions } from './site-content.js';
 import { tenses, verbs, persons, levelTenses, scoreAnswer, localDate, phrase } from './core.js';
-import {formats,sanitizeLearning,makeSession,recordAnswer,isCorrect,learningStats,journey,dailyMission} from './learning.js';
+import {formats,makeSession,recordAnswer,isCorrect,learningStats,journey,dailyMission} from './learning.js';
+import {loadProgress,PROGRESS_KEY} from './progress-storage.js';
 const escapeHTML=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 const paths = {
@@ -28,15 +29,10 @@ function icon(name) { return `<svg viewBox="0 0 24 24" aria-hidden="true">${path
 document.querySelectorAll('[data-icon]').forEach(el => el.innerHTML=icon(el.dataset.icon));
 const main = document.querySelector('#main');
 const dialog = document.querySelector('#quiz-dialog');
-const KEY = 'verbox-progress-v1';
-let storageAvailable = true;
-let saved;
-try { saved = JSON.parse(localStorage.getItem(KEY) || localStorage.getItem('conjugo-progress-v1') || 'null'); } catch { storageAvailable = false; }
-const initial = { points:0, sessions:[], daily:{}, level:'CE2' };
-let state = saved && typeof saved === 'object' && Number.isFinite(saved.points) && saved.points >= 0 && Array.isArray(saved.sessions) && saved.daily && typeof saved.daily === 'object' ? saved : initial;
-state.sessions = state.sessions.filter(s => s && levelTenses[s.level] && (tenses[s.tense] || s.tense==='mixed') && Number.isFinite(s.correct) && Number.isFinite(s.points) && Number.isFinite(s.answered) && typeof s.date === 'string' && Number.isFinite(Date.parse(s.date)));
-state.sessions=state.sessions.map(s=>({...s,formats:Array.isArray(s.formats)?s.formats.filter(f=>formats[f]):['choice'],formatCounts:Object.fromEntries(Object.keys(formats).map(f=>[f,Number.isFinite(s.formatCounts?.[f])?Math.max(0,Math.min(10,s.formatCounts[f])):0]))}));
-state.learning=sanitizeLearning(saved?.learning);
+const KEY = PROGRESS_KEY;
+let storage;
+try { storage=localStorage; } catch { /* The loader handles unavailable storage. */ }
+let {state,storageAvailable}=loadProgress(storage);
 let level = levelTenses[document.body.dataset.level] ? document.body.dataset.level : levelTenses[state.level] ? state.level : 'CE2';
 const requestedTense = new URLSearchParams(location.search).get('temps');
 let selected = levelTenses[level].includes(requestedTense) ? requestedTense : 'present';
@@ -123,7 +119,7 @@ function navigate(next) { location.assign({accueil:'/',progres:'/progres/',fiche
 // Public navigation uses native links so URLs work without JavaScript.
 
 function startQuiz(options={}) {
- returnFocus=document.activeElement;
+ if(!dialog.contains(document.activeElement))returnFocus=document.activeElement;
  const settings={level,tense:mixTenses?'mixed':selected,format:exerciseFormat,mode,review:false,...options};
  quiz={...settings,questions:makeSession({...settings,memory:state.learning}),memory:structuredClone(state.learning),index:0,points:0,correct:0,streak:0,answered:0,locked:false,finished:false,started:Date.now(),deadline:Date.now()+90000,remaining:90,mistakes:[],formatCounts:{},confirming:false,chaptersBefore:journey(level,state.sessions,state.learning).filter(c=>c.done).length};
  renderQuestion();dialog.showModal();focusAnswer();
@@ -157,7 +153,7 @@ function renderQuestion() {
 function answerQuestion(chosen) {
  if(!quiz||quiz.locked||quiz.finished||!chosen.trim())return;
  if(quiz.mode==='timed'&&Date.now()>=quiz.deadline){finishQuiz(true);return;}
- const q=quiz.questions[quiz.index],correct=isCorrect(chosen,q.answer);
+ const q=quiz.questions[quiz.index],correct=isCorrect(chosen,q.answer,q);
  quiz.locked=true;quiz.answered++;quiz.streak=correct?quiz.streak+1:0;
  quiz.formatCounts[q.format]=(quiz.formatCounts[q.format]||0)+1;
  recordAnswer(quiz.memory,q,correct);
@@ -194,7 +190,14 @@ function confirmQuit() {
  dialog.querySelector('#keep-playing').addEventListener('click',()=>{quiz.confirming=false;dialog.replaceChildren(...previous.childNodes);(dialog.querySelector('#next-question:not([hidden])')||dialog.querySelector('#written-answer')||dialog.querySelector('.answer')).focus();tick();});
  dialog.querySelector('#keep-playing').focus();
 }
-function closeQuiz() { clearInterval(timer);timer=null;quiz=null;dialog.close();if(returnFocus?.isConnected)returnFocus.focus();else main.focus(); }
+function closeQuiz() { clearInterval(timer);timer=null;quiz=null;dialog.close();const target=returnFocus?.isConnected?returnFocus:document.getElementById(returnFocus?.id);if(target)target.focus();else main.focus(); }
 dialog.addEventListener('cancel',event=>{event.preventDefault();confirmQuit();});
+dialog.addEventListener('keydown',event=>{
+ if(event.key!=='Tab')return;
+ const stops=[...dialog.querySelectorAll('button,input,select,textarea,a[href],summary,[tabindex]')].filter(el=>!el.disabled&&el.tabIndex>=0&&el.getClientRects().length);
+ const first=stops[0],last=stops.at(-1);
+ if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}
+ else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}
+});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')tick();});
 render();

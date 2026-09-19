@@ -123,3 +123,13 @@ Commande : npx --yes lighthouse@12.8.2 URL --only-categories=performance --chrom
 Les objectifs LCP ≤ 2,5 s et CLS ≤ 0,1 sont atteints dans ces simulations. Lighthouse au chargement ne mesure pas l’INP : il reste à vérifier par des interactions et, si disponibles, les données terrain de Search Console. Le TBT est un indicateur de diagnostic, pas une mesure de l’INP.
 
 Le gain observé accompagne la correction de l’indentation, ainsi que les nouveaux contenus et modules ; il ne constitue pas une expérience isolant chaque modification. Les trois feuilles CSS restent séparées, sans minification artisanale. app.js et audience.js sont des modules, et le contenu public est prérendu. L’image de partage mesure déjà 15 081 octets pour 1200 × 630 : aucune recompression nécessaire. La CSP optionnelle n’est pas ajoutée : les styles dynamiques du quiz demanderaient un traitement dédié et vérifié.
+
+## Livraison et vérification finale
+
+Le build courant contient 27 routes HTML (plus 404.html), dont 24 indexables. Les références historiques à 12 ou 14 pages décrivent l’état initial. Les exercices en contexte existent déjà et ne font pas partie d’une extension future à réimplémenter.
+
+Contrôles locaux : 30 tests fonctionnels, de contenu et d’audience ; 11 tests SEO ; build et design verts. Le chargeur de statistiques est testé pour chaque route et pour opposition, DNT, GPC et stockage bloqué. Les tableaux et la fiche voir ont été contrôlés visuellement à des largeurs de fenêtre de 390 et 320 px, sans débordement horizontal. Le rendu bureau de la fiche être a également été contrôlé.
+
+La validation manuelle du quiz au clavier n’a pas pu être terminée : le contrôle automatique d’autorisation du navigateur a épuisé son quota avant l’ouverture du quiz. Elle reste à effectuer, notamment pour Échap, la confirmation de sortie et le retour du focus après une série. Le code conserve désormais la cible de retour du focus et retrouve le bouton reconstruit après affichage du bilan. Aucune conformité globale d’accessibilité n’est revendiquée.
+
+Les nouvelles fiches restent en PR brouillon pour relecture pédagogique ; les textes légaux restent à valider selon le statut de l’éditeur. Le domaine, Matomo et les données d’identité n’ont pas été modifiés ; seule l’adresse publique de GitHub autorisée par le propriétaire a été ajoutée à la configuration.
