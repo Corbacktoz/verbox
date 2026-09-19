@@ -101,3 +101,5 @@ Le nombre de tests de l’ancien audit était périmé : avant ces travaux, 21 t
 Les routes `/a-propos/` (indexable) et `/mentions-legales/` (noindex) sont ajoutées. Les attentes de taille du sitemap sont désormais calculées à partir des routes ; le nombre historique de douze pages ci-dessus décrit l’audit initial.
 
 Les trois pages de niveau ont une introduction et une méthode distinctes. Le contenu est évalué sur ses informations utiles, sans quota de mots. Les listes de verbes proviennent de `allowedVerbs(level)` ; les exemples et corrections sont testés contre les données. Une relecture pédagogique reste nécessaire avant publication.
+
+Le hub et les dix pages de verbes sont indexables dans le build de production, avec canoniques, fil d’Ariane et sitemap dérivés des routes. Le titre promet six temps, pas tous les temps. Les liens depuis les niveaux ne pointent que vers les fiches existantes. L’extension aux trente autres verbes attend le retour d’indexation du propriétaire. Aucun nouveau traceur ni événement n’a été ajouté.

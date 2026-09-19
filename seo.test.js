@@ -12,13 +12,14 @@ const config={siteUrl:'https://verbox.example',name:'Verbox'};
 
 test('Pages publiques : HTML lisible, titre unique, canonique et données structurées cohérentes',()=>{
  assert.equal(new Set(routes.map(r=>r.title)).size,routes.length);
+ assert.equal(new Set(routes.map(r=>r.description)).size,routes.length);
  for(const route of routes){
   const html=renderPage(template,route,config,true);
   assert.equal((html.match(/<h1[ >]/g)||[]).length,1,route.path);
   assert.equal((html.match(/<title>/g)||[]).length,1);
   assert.ok(html.includes(`rel="canonical" href="${config.siteUrl}${route.path}"`));
   assert.ok(html.includes(route.noindex?'content="noindex, follow"':'content="index, follow, max-image-preview:large"'));
-  assert.equal(html.includes('src="/app.js"'),!['confidentialite','apropos','mentions'].includes(route.page));
+  assert.equal(html.includes('src="/app.js"'),!['confidentialite','apropos','mentions','conjugaison','verbe'].includes(route.page));
   assert.ok(!html.includes('Conjugo'));
   const graph=JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
   assert.equal(graph['@graph'][0].name,'Verbox');
@@ -34,6 +35,24 @@ test('Sitemap : seulement les routes publiques canoniques ; robots autorise les 
  assert.ok(!xml.includes('/progres/')&&!xml.includes('design-preview'));
  for(const [,loc]of xml.matchAll(/<loc>(.*?)<\/loc>/g))assert.equal(new URL(loc).search,'');
  const text=robots(config,true);assert.ok(text.includes('User-agent: *\nAllow: /'));assert.ok(text.includes('Sitemap: https://verbox.example/sitemap.xml'));assert.ok(!text.includes('Disallow: /progres'));
+});
+
+test('Les fiches verbe comportent six tableaux accessibles et des introductions distinctes',()=>{
+ const intros=[];
+ for(const route of routes.filter(r=>!r.noindex)){
+  const html=renderPage(template,route,config,true);
+  const main=html.match(/<main[^>]*>([\s\S]*?)<\/main>/)[1];
+  intros.push(main.match(/<p>([\s\S]*?)<\/p>/)[1]);
+  if(route.page==='verbe'){
+   assert.equal((main.match(/<table /g)||[]).length,6);
+   assert.equal((main.match(/<caption>/g)||[]).length,6);
+   assert.equal((main.match(/scope="row"/g)||[]).length,36);
+   assert.ok(html.includes('BreadcrumbList'));
+   assert.ok(route.title.length<=60);
+   assert.ok(route.description.length>=120&&route.description.length<=155);
+  }
+ }
+ assert.equal(new Set(intros).size,intros.length,'Premiers paragraphes indexables distincts');
 });
 
 test('Informations du projet : contact configuré, adresse échappée et mentions hors sitemap',()=>{
