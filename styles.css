@@ -189,6 +189,49 @@ svg{
   display:flex;
   align-items:center;
   gap:var(--space-6)}
+.sound-toggle{
+  min-height:var(--size-touch);
+  min-width:var(--size-touch);
+  border:1px solid var(--color-border-strong);
+  border-radius:var(--radius-sm);
+  background:var(--color-surface);
+  color:var(--color-muted);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:var(--space-2);
+  cursor:pointer;
+  transition:background var(--motion-fast) var(--motion-ease),color var(--motion-fast) var(--motion-ease)}
+.sound-toggle:hover{
+  background:var(--color-surface-soft);
+  color:var(--color-brand)}
+.sound-toggle[aria-pressed="false"]{
+  color:var(--color-subtle);
+  opacity:.6}
+.speech-btn{
+  min-height:var(--size-touch);
+  min-width:var(--size-touch);
+  border:none;
+  background:transparent;
+  color:var(--color-brand);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:var(--space-2);
+  border-radius:var(--radius-sm);
+  cursor:pointer;
+  vertical-align:middle;
+  transition:transform var(--motion-fast) var(--motion-ease),color var(--motion-fast) var(--motion-ease)}
+.speech-btn:hover{
+  color:var(--color-accent);
+  transform:scale(1.1)}
+.speech-btn.small{
+  min-height:32px;
+  min-width:32px;
+  padding:var(--space-1)}
+.speech-btn.small svg{
+  width:18px;
+  height:18px}
 .points-pill{
   display:flex;
   gap:var(--space-1);
@@ -1471,7 +1514,17 @@ dialog::backdrop{
     gap:var(--space-1);
     font-size:var(--font-size-caption)}
 }
+@view-transition{
+  navigation:auto}
+::view-transition-old(root),
+::view-transition-new(root){
+  animation-duration:200ms;
+  animation-timing-function:ease-in-out}
 @media(prefers-reduced-motion:reduce){
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*){
+    animation:none!important}
   *,*::before,*::after{
     transition:none!important;
     scroll-behavior:auto!important}

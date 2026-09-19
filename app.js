@@ -20,12 +20,73 @@ const paths = {
  target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
  bulb:'<path d="M9 18c0-4-4-4-4-9a7 7 0 0 1 14 0c0 5-4 5-4 9H9Zm0 3h6m-5-3v-7m4 7v-7m-4 0 2 2 2-2"/>',
  trophy:'<path d="M7 3h10v7a5 5 0 0 1-10 0V3Zm0 2H3v3c0 3 2 4 4 4m10-7h4v3c0 3-2 4-4 4m-5 3v5m-4 1h8"/>',
- zap:'<path d="m13 2-9 12h7l-1 8 10-13h-8l1-7Z"/>',
- star:'<path d="m12 2 3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1 3-6Z"/>',
- close:'<path d="m6 6 12 12M6 18 18 6"/>'
+  zap:'<path d="m13 2-9 12h7l-1 8 10-13h-8l1-7Z"/>',
+  star:'<path d="m12 2 3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1 3-6Z"/>',
+  speaker:'<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/>',
+  volumeMute:'<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>',
+  close:'<path d="m6 6 12 12M6 18 18 6"/>'
 };
 function icon(name) { return `<svg viewBox="0 0 24 24" aria-hidden="true">${paths[name] || paths.star}</svg>`; }
 document.querySelectorAll('[data-icon]').forEach(el => el.innerHTML=icon(el.dataset.icon));
+
+let audioCtx = null, soundEnabled = true;
+try { const s = localStorage.getItem('verbox-sound'); if (s !== null) soundEnabled = s === 'true'; } catch {}
+function getAudioContext() {
+  if (!audioCtx && typeof window !== 'undefined') {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) audioCtx = new AC();
+  }
+  if (audioCtx?.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function playTone(freq, type, startTime, duration, startVol, endVol) {
+  if (!soundEnabled) return;
+  const ctx = getAudioContext(); if (!ctx) return;
+  const osc = ctx.createOscillator(), gain = ctx.createGain();
+  osc.type = type; osc.frequency.setValueAtTime(freq, startTime);
+  gain.gain.setValueAtTime(startVol, startTime);
+  gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, endVol), startTime + duration);
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.start(startTime); osc.stop(startTime + duration);
+}
+function playSound(type) {
+  if (!soundEnabled) return;
+  const ctx = getAudioContext(); if (!ctx) return;
+  const t = ctx.currentTime;
+  if (type === 'correct') { playTone(659.25, 'sine', t, 0.12, 0.15, 0.01); playTone(880, 'sine', t + 0.1, 0.25, 0.15, 0.001); }
+  else if (type === 'streak') { playTone(659.25, 'sine', t, 0.09, 0.15, 0.01); playTone(880, 'sine', t + 0.08, 0.09, 0.15, 0.01); playTone(1108.73, 'sine', t + 0.16, 0.28, 0.18, 0.001); }
+  else if (type === 'wrong') { playTone(261.63, 'triangle', t, 0.15, 0.12, 0.01); playTone(220, 'triangle', t + 0.12, 0.22, 0.1, 0.001); }
+  else if (type === 'finish') { [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => playTone(f, 'sine', t + i * 0.08, 0.3, 0.15, 0.001)); }
+}
+function speak(text) {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+  try {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'fr-FR'; u.rate = 0.9;
+    window.speechSynthesis.speak(u);
+  } catch {}
+}
+function withViewTransition(fn) {
+  if (typeof document !== 'undefined' && document.startViewTransition && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    return document.startViewTransition(fn);
+  }
+  return fn();
+}
+function updateSoundToggle() {
+  const btn = document.querySelector('#sound-toggle');
+  if (!btn) return;
+  btn.setAttribute('aria-pressed', soundEnabled ? 'true' : 'false');
+  btn.setAttribute('aria-label', soundEnabled ? 'Couper les sons' : 'Activer les sons');
+  btn.setAttribute('title', soundEnabled ? 'Couper les sons' : 'Activer les sons');
+  btn.innerHTML = icon(soundEnabled ? 'speaker' : 'volumeMute');
+}
+document.querySelector('#sound-toggle')?.addEventListener('click', () => {
+  soundEnabled = !soundEnabled;
+  try { localStorage.setItem('verbox-sound', String(soundEnabled)); } catch {}
+  updateSoundToggle();
+  if (soundEnabled) playSound('correct');
+});
 const main = document.querySelector('#main');
 const dialog = document.querySelector('#quiz-dialog');
 const KEY = 'verbox-progress-v1';
@@ -88,9 +149,9 @@ function renderHome() {
  <section class="tip-card"><div class="eyebrow">${icon('bulb')}LE PETIT MÉMO</div><h3>Hier, aujourd’hui<br>ou demain ?</h3><p>Repère les mots qui donnent un indice sur le temps : hier, maintenant, demain…</p><button data-page="fiches">Découvrir les fiches ${icon('arrow')}</button></section>
  <section class="badges-card"><div class="badges-heading"><h2 class="aside-title">Mes petits trophées</h2><button class="text-link" data-page="progres">Tout voir</button></div><div class="badge-list">${[0,1,2].map(i=>badge(i)).join('')}</div></section></aside></div>${homeGuide(document.body.dataset.level || undefined)}`;
  main.querySelectorAll('[data-level]').forEach(btn=>btn.addEventListener('click',()=>{state.level=btn.dataset.level;save();location.assign(levelPath(btn.dataset.level));}));
- main.querySelectorAll('[data-tense]').forEach(btn=>btn.addEventListener('click',()=>{selected=btn.dataset.tense;mixTenses=false;render();main.querySelector(`[data-tense="${selected}"]`).focus();}));
- main.querySelectorAll('[data-mode]').forEach(btn=>btn.addEventListener('click',()=>{mode=btn.dataset.mode;render();main.querySelector(`[data-mode="${mode}"]`).focus();}));
- main.querySelector('#mix-tenses').addEventListener('change',event=>{mixTenses=event.target.checked;render();main.querySelector('#mix-tenses').focus();});
+ main.querySelectorAll('[data-tense]').forEach(btn=>btn.addEventListener('click',()=>{selected=btn.dataset.tense;mixTenses=false;withViewTransition(()=>{render();main.querySelector(`[data-tense="${selected}"]`)?.focus();});}));
+ main.querySelectorAll('[data-mode]').forEach(btn=>btn.addEventListener('click',()=>{mode=btn.dataset.mode;withViewTransition(()=>{render();main.querySelector(`[data-mode="${mode}"]`)?.focus();});}));
+ main.querySelector('#mix-tenses').addEventListener('change',event=>{mixTenses=event.target.checked;withViewTransition(()=>{render();main.querySelector('#mix-tenses')?.focus();});});
  main.querySelector('#exercise-format').addEventListener('change',event=>{exerciseFormat=event.target.value;});
  main.querySelector('#start-quiz').addEventListener('click',()=>startQuiz());
  main.querySelector('#daily-mission').addEventListener('click',()=>startQuiz({format:mission.format,tense:'mixed',mode:'practice',mission:true}));
@@ -117,6 +178,7 @@ function render() {
  document.querySelector('#page-label').textContent={accueil:'Mon entraînement',progres:'Mes progrès',fiches:'Mes fiches mémo',aide:'Comment ça marche ?',lecon:'Fiches de conjugaison'}[page];
  const activeNav=(page==='fiches'||page==='lecon')?'fiches':page;
  document.querySelectorAll('.nav-item').forEach(btn=>{const isCurrent=btn.dataset.page===activeNav;btn.classList.toggle('active',isCurrent);if(isCurrent)btn.setAttribute('aria-current','page');else btn.removeAttribute('aria-current');});
+ updateSoundToggle();
  ({accueil:renderHome,progres:renderProgress,fiches:renderMemos,aide:renderHelp,lecon:renderLessonPage}[page])();
  main.querySelectorAll('[data-page]').forEach(btn=>btn.addEventListener('click',()=>navigate(btn.dataset.page)));
 }
@@ -141,49 +203,64 @@ function tick() {
  if(quiz.mode==='timed'&&seconds===0)finishQuiz(true);
 }
 function renderQuestion() {
- const q=quiz.questions[quiz.index];
- const pronoun=q.person==='je'&&/^[aàâeéèêëiîïoôuùûh]/i.test(q.answer)?'j’':q.person+' ';
- const instructions={choice:'Choisis la bonne conjugaison.',write:'Écris seulement la forme conjuguée, sans le sujet.',sentence:'Complète la phrase avec la forme conjuguée.',correct:'Cette phrase contient une erreur de conjugaison. Écris la forme correcte.'};
+  const q=quiz.questions[quiz.index];
+  const pronoun=q.person==='je'&&/^[aàâeéèêëiîïoôuùûh]/i.test(q.answer)?'j’':q.person+' ';
+  const instructions={choice:'Choisis la bonne conjugaison.',write:'Écris seulement la forme conjuguée, sans le sujet.',sentence:'Complète la phrase avec la forme conjuguée.',correct:'Cette phrase contient une erreur de conjugaison. Écris la forme correcte.'};
   let exercise=q.format==='choice'?'<div class="answers" role="group" aria-label="Choisis la bonne réponse" aria-describedby="question-verb context-prompt">'+q.choices.map((choice,i)=>'<button class="answer" data-choice="'+i+'">'+choice+'</button>').join('')+'</div>':'<form id="written-form"><label for="written-answer">Ta conjugaison (sans le sujet)</label><input id="written-answer" name="answer" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="80" required aria-describedby="writing-help"><p id="writing-help">Les accents comptent. Pour un temps composé, écris les deux mots.</p><div class="accent-keys" role="group" aria-label="Ajouter un accent">'+['é','è','ê','î','û','â','ç'].map(c=>'<button type="button" data-accent="'+c+'" aria-label="Insérer '+c+'">'+c+'</button>').join('')+'</div><div class="writing-actions"><button class="primary-button" type="submit">Valider</button><button class="text-link" type="button" id="show-hint">Un indice ?</button></div><p id="answer-hint" aria-live="polite"></p></form>';
-  const prompt=q.format==='sentence'?'<p class="context-sentence" id="context-prompt">'+pronoun+'<span role="img" aria-label="verbe à compléter">…</span> '+q.complement+'.</p>':q.format==='correct'?'<p class="context-sentence" id="context-prompt">'+phrase(q.person,q.wrongForm)+' '+q.complement+'.</p>':'<div class="question-person" id="context-prompt">'+q.person+' <span role="img" aria-label="verbe à compléter">…</span></div>';
-  dialog.innerHTML='<header class="quiz-header"><div><h2 id="quiz-title">'+tenses[q.tense].name+'</h2><small>'+quiz.level+' · '+formats[q.format]+(q.review?' · Révision':'')+'</small></div><button class="close-button" aria-label="Quitter l’exercice" id="quit-quiz">'+icon('close')+'</button></header><div class="quiz-body"><div class="quiz-status"><span>Question <strong>'+(quiz.index+1)+'</strong> sur 10</span><span id="quiz-points"><span aria-hidden="true">✦</span> '+quiz.points+' pts</span><span class="quiz-timer" role="timer" aria-label="'+(quiz.mode==='timed'?'Temps restant':'Temps écoulé')+'">'+icon('clock')+'<span id="timer-value">'+formatTime(quiz.mode==='timed'?quiz.remaining:Math.floor((Date.now()-quiz.started)/1000))+'</span></span></div><div class="progress-track" role="progressbar" aria-label="Questions terminées" aria-valuemin="0" aria-valuemax="10" aria-valuenow="'+quiz.answered+'"><span style="width:'+quiz.answered*10+'%"></span></div><p class="question-instruction">'+instructions[q.format]+' <strong>Temps demandé : '+tenses[q.tense].name.toLowerCase()+'.</strong></p><h3 class="question-verb" id="question-verb">'+q.verb+'</h3>'+prompt+exercise+'<div id="feedback" aria-live="polite" tabindex="-1"></div><div class="quiz-actions"><small>Les erreurs font partie du voyage.</small><button class="primary-button" id="next-question" hidden>Suivant '+icon('arrow')+'</button></div></div>';
- dialog.querySelectorAll('[data-choice]').forEach(btn=>btn.addEventListener('click',()=>answerQuestion(q.choices[Number(btn.dataset.choice)])));
- dialog.querySelector('#written-form')?.addEventListener('submit',event=>{event.preventDefault();answerQuestion(dialog.querySelector('#written-answer').value);});
- dialog.querySelectorAll('[data-accent]').forEach(btn=>btn.addEventListener('click',()=>{const input=dialog.querySelector('#written-answer');input.setRangeText(btn.dataset.accent,input.selectionStart,input.selectionEnd,'end');input.focus();}));
- dialog.querySelector('#show-hint')?.addEventListener('click',()=>{dialog.querySelector('#answer-hint').textContent='La réponse commence par « '+q.answer[0]+' » et contient '+q.answer.split(' ').length+' mot(s).';});
- dialog.querySelector('#quit-quiz').addEventListener('click',confirmQuit);
- dialog.querySelector('#next-question').addEventListener('click',nextQuestion);
- if(dialog.open)focusAnswer();
+  const prompt=q.format==='sentence'?'<p class="context-sentence" id="context-prompt">'+pronoun+'<span role="img" aria-label="verbe à compléter">…</span> '+q.complement+'. <button type="button" class="speech-btn small" id="speak-prompt" aria-label="Écouter la phrase" title="Écouter la phrase">'+icon('speaker')+'</button></p>':q.format==='correct'?'<p class="context-sentence" id="context-prompt">'+phrase(q.person,q.wrongForm)+' '+q.complement+'. <button type="button" class="speech-btn small" id="speak-prompt" aria-label="Écouter la phrase" title="Écouter la phrase">'+icon('speaker')+'</button></p>':'<div class="question-person" id="context-prompt">'+q.person+' <span role="img" aria-label="verbe à compléter">…</span></div>';
+  dialog.innerHTML='<header class="quiz-header"><div><h2 id="quiz-title">'+tenses[q.tense].name+'</h2><small>'+quiz.level+' · '+formats[q.format]+(q.review?' · Révision':'')+'</small></div><button class="close-button" aria-label="Quitter l’exercice" id="quit-quiz">'+icon('close')+'</button></header><div class="quiz-body"><div class="quiz-status"><span>Question <strong>'+(quiz.index+1)+'</strong> sur 10</span><span id="quiz-points"><span aria-hidden="true">✦</span> '+quiz.points+' pts</span><span class="quiz-timer" role="timer" aria-label="'+(quiz.mode==='timed'?'Temps restant':'Temps écoulé')+'">'+icon('clock')+'<span id="timer-value">'+formatTime(quiz.mode==='timed'?quiz.remaining:Math.floor((Date.now()-quiz.started)/1000))+'</span></span></div><div class="progress-track" role="progressbar" aria-label="Questions terminées" aria-valuemin="0" aria-valuemax="10" aria-valuenow="'+quiz.answered+'"><span style="width:'+quiz.answered*10+'%"></span></div><p class="question-instruction">'+instructions[q.format]+' <strong>Temps demandé : '+tenses[q.tense].name.toLowerCase()+'.</strong></p><h3 class="question-verb" id="question-verb">'+q.verb+' <button type="button" class="speech-btn small" id="speak-verb" aria-label="Écouter la prononciation du verbe '+q.verb+'" title="Écouter le verbe">'+icon('speaker')+'</button></h3>'+prompt+exercise+'<div id="feedback" aria-live="polite" tabindex="-1"></div><div class="quiz-actions"><small>Les erreurs font partie du voyage.</small><button class="primary-button" id="next-question" hidden>Suivant '+icon('arrow')+'</button></div></div>';
+  dialog.querySelectorAll('[data-choice]').forEach(btn=>btn.addEventListener('click',()=>answerQuestion(q.choices[Number(btn.dataset.choice)])));
+  dialog.querySelector('#written-form')?.addEventListener('submit',event=>{event.preventDefault();answerQuestion(dialog.querySelector('#written-answer').value);});
+  dialog.querySelectorAll('[data-accent]').forEach(btn=>btn.addEventListener('click',()=>{const input=dialog.querySelector('#written-answer');input.setRangeText(btn.dataset.accent,input.selectionStart,input.selectionEnd,'end');input.focus();}));
+  dialog.querySelector('#show-hint')?.addEventListener('click',()=>{dialog.querySelector('#answer-hint').textContent='La réponse commence par « '+q.answer[0]+' » et contient '+q.answer.split(' ').length+' mot(s).';});
+  dialog.querySelector('#quit-quiz').addEventListener('click',confirmQuit);
+  dialog.querySelector('#next-question').addEventListener('click',nextQuestion);
+  dialog.querySelector('#speak-verb')?.addEventListener('click',()=>speak(q.verb));
+  dialog.querySelector('#speak-prompt')?.addEventListener('click',()=>{
+    const text=q.format==='sentence'?pronoun+' '+q.complement:phrase(q.person,q.wrongForm)+' '+q.complement;
+    speak(text);
+  });
+  if(dialog.open)focusAnswer();
 }
 function answerQuestion(chosen) {
- if(!quiz||quiz.locked||quiz.finished||!chosen.trim())return;
- if(quiz.mode==='timed'&&Date.now()>=quiz.deadline){finishQuiz(true);return;}
- const q=quiz.questions[quiz.index],correct=isCorrect(chosen,q.answer);
- quiz.locked=true;quiz.answered++;quiz.streak=correct?quiz.streak+1:0;
- quiz.formatCounts[q.format]=(quiz.formatCounts[q.format]||0)+1;
- recordAnswer(quiz.memory,q,correct);
- const points=scoreAnswer(correct,quiz.streak);quiz.points+=points;
- if(correct)quiz.correct++;else quiz.mistakes.push({verb:q.verb,person:q.person,answer:q.answer,chosen});
- dialog.querySelectorAll('.answer').forEach(btn=>{btn.disabled=true;const value=q.choices[Number(btn.dataset.choice)];if(value===q.answer)btn.classList.add('correct');else if(value===chosen)btn.classList.add('wrong');});
- dialog.querySelectorAll('#written-form input, #written-form button').forEach(el=>el.disabled=true);
- dialog.querySelector('#quiz-points').innerHTML='<span aria-hidden="true">✦</span> '+quiz.points+' pts';
- const verb=verbs.find(v=>v.infinitive===q.verb);
- const reminder=q.tense==='present'&&!q.verb.endsWith('er')?'À retenir : '+verb.present.map((form,i)=>phrase(['je','tu','il','nous','vous','ils'][i],form)).join(', ')+'.':tenses[q.tense].tip;
- dialog.querySelector('#feedback').innerHTML='<div class="feedback '+(correct?'':'incorrect')+'"><strong>'+(correct?'Bien joué ! +'+points+' points'+(quiz.streak>=3?' · Quelle série !':''):'On apprend ensemble !')+'</strong>'+(correct?'':'<div>La bonne réponse : <b>'+phrase(q.person,q.answer)+'</b>.</div><div>Cette conjugaison reviendra pour t’aider à la retenir.</div>')+'<small>'+reminder+'</small></div>';
- const next=dialog.querySelector('#next-question');next.hidden=false;next.innerHTML=(quiz.index===9?'Voir mon résultat':'Suivant')+' '+icon('arrow');next.focus();
+  if(!quiz||quiz.locked||quiz.finished||!chosen.trim())return;
+  if(quiz.mode==='timed'&&Date.now()>=quiz.deadline){finishQuiz(true);return;}
+  const q=quiz.questions[quiz.index],correct=isCorrect(chosen,q.answer);
+  quiz.locked=true;quiz.answered++;quiz.streak=correct?quiz.streak+1:0;
+  quiz.formatCounts[q.format]=(quiz.formatCounts[q.format]||0)+1;
+  recordAnswer(quiz.memory,q,correct);
+  const points=scoreAnswer(correct,quiz.streak);quiz.points+=points;
+  if(correct)quiz.correct++;else quiz.mistakes.push({verb:q.verb,person:q.person,answer:q.answer,chosen});
+  if(correct){
+    if(quiz.streak>=3)playSound('streak');
+    else playSound('correct');
+  }else{
+    playSound('wrong');
+  }
+  dialog.querySelectorAll('.answer').forEach(btn=>{btn.disabled=true;const value=q.choices[Number(btn.dataset.choice)];if(value===q.answer)btn.classList.add('correct');else if(value===chosen)btn.classList.add('wrong');});
+  dialog.querySelectorAll('#written-form input, #written-form button').forEach(el=>el.disabled=true);
+  dialog.querySelector('#quiz-points').innerHTML='<span aria-hidden="true">✦</span> '+quiz.points+' pts';
+  const verb=verbs.find(v=>v.infinitive===q.verb);
+  const reminder=q.tense==='present'&&!q.verb.endsWith('er')?'À retenir : '+verb.present.map((form,i)=>phrase(['je','tu','il','nous','vous','ils'][i],form)).join(', ')+'.':tenses[q.tense].tip;
+  dialog.querySelector('#feedback').innerHTML='<div class="feedback '+(correct?'':'incorrect')+'"><strong>'+(correct?'Bien joué ! +'+points+' points'+(quiz.streak>=3?' · Quelle série !':''):'On apprend ensemble !')+'</strong><div>'+(correct?'Tu as bien trouvé : <b>'+phrase(q.person,q.answer)+'</b> <button type="button" class="speech-btn small" id="speak-answer" aria-label="Écouter la conjugaison" title="Écouter">'+icon('speaker')+'</button>.':'La bonne réponse : <b>'+phrase(q.person,q.answer)+'</b> <button type="button" class="speech-btn small" id="speak-answer" aria-label="Écouter la bonne réponse" title="Écouter">'+icon('speaker')+'</button>.')+'</div>'+(correct?'':'<div>Cette conjugaison reviendra pour t’aider à la retenir.</div>')+'<small>'+reminder+'</small></div>';
+  dialog.querySelector('#speak-answer')?.addEventListener('click',()=>speak(phrase(q.person,q.answer)));
+  const next=dialog.querySelector('#next-question');next.hidden=false;next.innerHTML=(quiz.index===9?'Voir mon résultat':'Suivant')+' '+icon('arrow');next.focus();
 }
-function nextQuestion() { if(!quiz?.locked||quiz.finished)return;if(quiz.index===9){finishQuiz(false);return;}quiz.index++;quiz.locked=false;renderQuestion(); }
+function nextQuestion() { if(!quiz?.locked||quiz.finished)return;if(quiz.index===9){finishQuiz(false);return;}quiz.index++;quiz.locked=false;withViewTransition(()=>renderQuestion()); }
 function finishQuiz(timedOut) {
- if(!quiz||quiz.finished)return;
- quiz.finished=true;clearInterval(timer);timer=null;
- const elapsed=quiz.mode==='timed'?Math.min(90,Math.round((Date.now()-quiz.started)/1000)):Math.round((Date.now()-quiz.started)/1000);
- const completed={date:new Date().toISOString(),day:localDate(),level:quiz.level,tense:quiz.tense,mode:quiz.mode,points:quiz.points,correct:quiz.correct,answered:quiz.answered,elapsed,formats:Object.keys(quiz.formatCounts),formatCounts:quiz.formatCounts};
- state.points+=quiz.points;state.sessions.push(completed);state.learning=quiz.memory;state.daily[localDate()]=todayPoints()+quiz.points;save();render();
- const unlocked=journey(quiz.level,state.sessions,state.learning).filter(c=>c.done).length>quiz.chaptersBefore;
- dialog.innerHTML='<div class="results"><div class="result-medal" aria-hidden="true">'+(quiz.correct===10?'🏆':quiz.correct>=7?'✦':'🌱')+'</div><h2 id="quiz-title">'+(quiz.correct===10?'Un sans-faute, bravo !':quiz.correct>=7?'Tu peux être fier de toi !':'Un pas de plus, bien joué !')+'</h2><p>'+(timedOut?'Le temps est écoulé. Chaque réponse compte !':'Tu viens de terminer ton entraînement.')+'</p>'+(unlocked?'<p class="milestone-message">Une nouvelle étape de ton voyage est accomplie !</p>':'')+'<div class="result-stats"><div><strong>+'+quiz.points+'</strong><span>points gagnés</span></div><div><strong>'+quiz.correct+'/'+quiz.answered+'</strong><span>réponses réussies</span></div><div><strong>'+formatTime(elapsed)+'</strong><span>temps de jeu</span></div></div>'+(timedOut&&quiz.answered<10?'<p>'+quiz.answered+' question(s) répondue(s) sur 10.</p>':'')+(quiz.mistakes.length?'<details class="review-list"><summary>Revoir mes '+quiz.mistakes.length+' correction(s)</summary>'+quiz.mistakes.map(m=>'<div class="review-item"><b>'+m.verb+' → '+phrase(m.person,m.answer)+'</b><small>Ta réponse : '+escapeHTML(m.chosen)+'</small></div>').join('')+'</details>':'')+(!storageAvailable?'<p class="storage-warning">Ces progrès ne pourront pas être conservés après fermeture du navigateur.</p>':'')+'<p>Une petite séance suffit. Tu peux revenir quand tu veux.</p><div class="quiz-actions"><button class="secondary-button" id="back-home">Faire une pause</button><button class="primary-button" id="play-again">Une nouvelle série '+icon('arrow')+'</button></div></div>';
- dialog.querySelector('#back-home').addEventListener('click',closeQuiz);
- dialog.querySelector('#play-again').addEventListener('click',()=>{const options={tense:quiz.tense,format:quiz.format,mode:quiz.mode,review:quiz.review};dialog.close();startQuiz(options);});
- dialog.querySelector('#back-home').focus();
+  if(!quiz||quiz.finished)return;
+  quiz.finished=true;clearInterval(timer);timer=null;
+  const elapsed=quiz.mode==='timed'?Math.min(90,Math.round((Date.now()-quiz.started)/1000)):Math.round((Date.now()-quiz.started)/1000);
+  const completed={date:new Date().toISOString(),day:localDate(),level:quiz.level,tense:quiz.tense,mode:quiz.mode,points:quiz.points,correct:quiz.correct,answered:quiz.answered,elapsed,formats:Object.keys(quiz.formatCounts),formatCounts:quiz.formatCounts};
+  state.points+=quiz.points;state.sessions.push(completed);state.learning=quiz.memory;state.daily[localDate()]=todayPoints()+quiz.points;save();render();
+  playSound('finish');
+  const unlocked=journey(quiz.level,state.sessions,state.learning).filter(c=>c.done).length>quiz.chaptersBefore;
+  withViewTransition(()=>{
+    dialog.innerHTML='<div class="results"><div class="result-medal" aria-hidden="true">'+(quiz.correct===10?'🏆':quiz.correct>=7?'✦':'🌱')+'</div><h2 id="quiz-title">'+(quiz.correct===10?'Un sans-faute, bravo !':quiz.correct>=7?'Tu peux être fier de toi !':'Un pas de plus, bien joué !')+'</h2><p>'+(timedOut?'Le temps est écoulé. Chaque réponse compte !':'Tu viens de terminer ton entraînement.')+'</p>'+(unlocked?'<p class="milestone-message">Une nouvelle étape de ton voyage est accomplie !</p>':'')+'<div class="result-stats"><div><strong>+'+quiz.points+'</strong><span>points gagnés</span></div><div><strong>'+quiz.correct+'/'+quiz.answered+'</strong><span>réponses réussies</span></div><div><strong>'+formatTime(elapsed)+'</strong><span>temps de jeu</span></div></div>'+(timedOut&&quiz.answered<10?'<p>'+quiz.answered+' question(s) répondue(s) sur 10.</p>':'')+(quiz.mistakes.length?'<details class="review-list"><summary>Revoir mes '+quiz.mistakes.length+' correction(s)</summary>'+quiz.mistakes.map(m=>'<div class="review-item"><b>'+m.verb+' → '+phrase(m.person,m.answer)+'</b><small>Ta réponse : '+escapeHTML(m.chosen)+'</small></div>').join('')+'</details>':'')+(!storageAvailable?'<p class="storage-warning">Ces progrès ne pourront pas être conservés après fermeture du navigateur.</p>':'')+'<p>Une petite séance suffit. Tu peux revenir quand tu veux.</p><div class="quiz-actions"><button class="secondary-button" id="back-home">Faire une pause</button><button class="primary-button" id="play-again">Une nouvelle série '+icon('arrow')+'</button></div></div>';
+    dialog.querySelector('#back-home').addEventListener('click',closeQuiz);
+    dialog.querySelector('#play-again').addEventListener('click',()=>{const options={tense:quiz.tense,format:quiz.format,mode:quiz.mode,review:quiz.review};dialog.close();startQuiz(options);});
+    dialog.querySelector('#back-home').focus();
+  });
 }
 function confirmQuit() {
  if(!quiz||quiz.finished){closeQuiz();return;}
