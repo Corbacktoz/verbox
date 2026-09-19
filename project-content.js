@@ -17,8 +17,11 @@ export function renderProject(page, config = {}) {
       <p>L’adresse de GitHub figure dans sa <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" rel="noreferrer">déclaration officielle de confidentialité, rubrique « Contact Us »</a>.</p>
       <h2>Données et statistiques</h2>
       <p>La <a href="/confidentialite/">page de confidentialité et de statistiques</a> explique le stockage local des progrès et permet de s’opposer à la mesure d’audience.</p>
-      <h2>Signaler un problème</h2>
-      <p>Pour signaler une erreur dans une fiche ou un problème technique, écrivez à ${contactLink} en précisant l’adresse de la page concernée.</p>` : `
+      <h2>Propriété intellectuelle et licence</h2>
+      <p>L’ensemble du code source, des fiches et des contenus de Verbox est protégé par le droit d’auteur (Copyright © 2026 ${escape(privacy.editorName || 'Jean-Charles Belin')}. Tous droits réservés).</p>
+      <p>La consultation du code et l’usage pédagogique des fiches en classe ou en famille sont autorisés à titre gracieux. Toute réutilisation, reproduction ou exploitation commerciale du code sans accord préalable écrit de l’éditeur est strictement interdite.</p>
+      <h2>Signaler un problème ou une vulnérabilité</h2>
+      <p>Pour signaler une erreur dans une fiche, un problème technique ou une vulnérabilité de sécurité, écrivez à ${contactLink} en précisant l’objet de votre message.</p>` : `
       <h2>Pourquoi Verbox ?</h2>
       <p>Verbox propose de courtes séances de conjugaison pour les élèves de CE2, CM1 et CM2. Tu peux choisir une réponse, écrire un verbe, compléter une phrase ou corriger une erreur. Après chaque réponse, une correction t’aide à comprendre.</p>
       <h2>Pour les enfants, les parents et les enseignants</h2>

@@ -86,3 +86,13 @@ npm run design:check
 `dist/` est généré et ignoré par Git. Une copie propre des sources suffit : `npm run build` crée le dossier publié par GitHub Actions. Le formatage CSS ne change que les espaces en début de ligne ; les sélecteurs et les valeurs restent identiques. Le contrôle de design limite la feuille à 80 Ko et l’indentation à huit espaces.
 
 Les pages `/a-propos/` et `/mentions-legales/` présentent le projet, le contact et l’hébergement. Elles restent lisibles sans JavaScript. L’adresse de GitHub est configurable dans `privacy.hostAddress`.
+
+## Licence et droits d'auteur
+
+Copyright (c) 2026 Jean-Charles Belin. Tous droits réservés.
+
+Le code source est mis à disposition à des fins de consultation, d’apprentissage et d’audit. Toute réutilisation, copie, modification ou redistribution du code nécessite un accord préalable écrit de l'auteur. L'exploitation commerciale directe ou indirecte est strictement réservée à l'auteur. Les contenus pédagogiques peuvent être utilisés gracieusement dans un cadre familial ou scolaire non commercial. Voir le fichier [LICENSE](LICENSE) pour les termes complets.
+
+## Sécurité
+
+Pour signaler une vulnérabilité de manière confidentielle et responsable, veuillez consulter notre politique de sécurité dans [SECURITY.md](SECURITY.md) ou écrire directement à `corback.inc@gmail.com`.
