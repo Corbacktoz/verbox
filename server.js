@@ -17,7 +17,12 @@ export function createServer({config,production=false}={}) {
    const url=new URL(req.url,'http://localhost');
    let pathname;
    try{pathname=decodeURIComponent(url.pathname);}catch{res.writeHead(400);res.end('Adresse incorrecte');return;}
-   res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','strict-origin-when-cross-origin');
+   res.setHeader('X-Content-Type-Options','nosniff');
+   res.setHeader('X-Frame-Options','DENY');
+   res.setHeader('Referrer-Policy','strict-origin-when-cross-origin');
+   res.setHeader('Permissions-Policy','camera=(), microphone=(), geolocation=(), payment=(), usb=()');
+   res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self' https://cdn.matomo.cloud; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://verbox.matomo.cloud; connect-src 'self' https://verbox.matomo.cloud; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';");
+   if(production)res.setHeader('Strict-Transport-Security','max-age=63072000; includeSubDomains; preload');
    if(!['GET','HEAD'].includes(req.method)){res.writeHead(405,{'Allow':'GET, HEAD'});res.end();return;}
    const send=(status,type,body,noindex=false)=>{res.setHeader('Content-Type',type);res.setHeader('Cache-Control','no-cache');if(!production||noindex)res.setHeader('X-Robots-Tag','noindex, follow');res.writeHead(status);res.end(req.method==='HEAD'?undefined:body);};
    const normalized=pathname.endsWith('/index.html')?pathname.slice(0,-10):!pathname.endsWith('/')?`${pathname}/`:pathname;

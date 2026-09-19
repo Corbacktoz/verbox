@@ -84,6 +84,8 @@ test('Build statique : vraies pages, ressources et fichiers robots dans une sort
   }
   assert.equal(await readFile(path.join(dir,'CNAME'),'utf8'),'verbox.example\n');
   assert.equal(await readFile(path.join(dir,'.nojekyll'),'utf8'),'');
+  const headers=await readFile(path.join(dir,'_headers'),'utf8');
+  assert.ok(headers.includes('Content-Security-Policy')&&headers.includes('X-Frame-Options: DENY'));
   assert.ok((await readFile(path.join(dir,'404.html'),'utf8')).includes('noindex'));
   const lesson=await readFile(path.join(dir,'fiches','le-present','index.html'),'utf8');assert.ok(lesson.includes('Quand utiliser ce temps ?'));
   assert.ok((await readFile(path.join(dir,'sitemap.xml'),'utf8')).includes('https://verbox.example/'));
@@ -98,7 +100,18 @@ test('HTTP : routes directes, redirections, vrais 404, robots et HEAD',async()=>
  const server=createServer({config,production:true});await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const origin=`http://127.0.0.1:${server.address().port}`;
  try{
-  for(const route of routes){const response=await fetch(origin+route.path);assert.equal(response.status,200);const html=await response.text();assert.ok(html.includes('<h1'));assert.equal(response.headers.get('x-robots-tag'),route.noindex?'noindex, follow':null);}
+  for(const route of routes){
+   const response=await fetch(origin+route.path);
+   assert.equal(response.status,200);
+   const html=await response.text();
+   assert.ok(html.includes('<h1'));
+   assert.equal(response.headers.get('x-robots-tag'),route.noindex?'noindex, follow':null);
+   assert.equal(response.headers.get('x-content-type-options'),'nosniff');
+   assert.equal(response.headers.get('x-frame-options'),'DENY');
+   assert.ok(response.headers.get('content-security-policy'));
+   assert.ok(response.headers.get('permissions-policy'));
+   assert.ok(response.headers.get('strict-transport-security'));
+  }
   for(const url of ['/index.html','/fiches','/conjugaison-cm1/index.html']){const response=await fetch(origin+url,{redirect:'manual'});assert.equal(response.status,308);assert.ok(routes.some(r=>r.path===response.headers.get('location')));}
   const missing=await fetch(origin+'/page-absente/');assert.equal(missing.status,404);assert.equal(missing.headers.get('x-robots-tag'),'noindex, follow');
   assert.equal((await fetch(origin+'/design-preview.html')).status,404);
