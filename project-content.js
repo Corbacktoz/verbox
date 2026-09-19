@@ -19,7 +19,7 @@ export function renderProject(page, config = {}) {
       <p>La <a href="/confidentialite/">page de confidentialité et de statistiques</a> explique le stockage local des progrès et permet de s’opposer à la mesure d’audience.</p>
       <h2>Propriété intellectuelle et licence</h2>
       <p>L’ensemble du code source, des fiches et des contenus de Verbox est protégé par le droit d’auteur (Copyright © 2026 ${escape(privacy.editorName || 'Jean-Charles Belin')}. Tous droits réservés).</p>
-      <p>La consultation du code et l’usage pédagogique des fiches en classe ou en famille sont autorisés à titre gracieux. Toute réutilisation, reproduction ou exploitation commerciale du code sans accord préalable écrit de l’éditeur est strictement interdite.</p>
+      <p>La consultation du code, ainsi que la consultation et l’impression des fiches mémo et exercices pour un usage scolaire (en classe) ou familial non commercial, sont autorisées à titre gracieux. Toute réutilisation, reproduction publique, redistribution ou exploitation commerciale du code sans accord préalable écrit de l’éditeur est strictement interdite.</p>
       <h2>Signaler un problème ou une vulnérabilité</h2>
       <p>Pour signaler une erreur dans une fiche, un problème technique ou une vulnérabilité de sécurité, écrivez à ${contactLink} en précisant l’objet de votre message.</p>` : `
       <h2>Pourquoi Verbox ?</h2>
