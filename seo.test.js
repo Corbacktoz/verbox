@@ -135,6 +135,20 @@ test('Aperçu de partage au format PNG 1200 × 630',async()=>{
  const png=await readFile(new URL('./assets/og-verbox.png',import.meta.url));
  assert.equal(png.subarray(1,4).toString(),'PNG');assert.equal(png.readUInt32BE(16),1200);assert.equal(png.readUInt32BE(20),630);
 });
+test('Modules JavaScript clients : tous les imports transitifs sont déclarés dans publicFiles',async()=>{
+ const seen=new Set(),queue=['app.js','audience.js'];
+ while(queue.length){
+  const file=queue.shift();
+  if(seen.has(file))continue;
+  seen.add(file);
+  assert.ok(publicFiles.includes(file),`Fichier publicFiles manquant : ${file}`);
+  const code=await readFile(new URL(`./${file}`,import.meta.url),'utf8');
+  for(const [,specifier]of code.matchAll(/\bfrom\s*['"]\.\/([^'"]+)['"]/g)){
+   if(!seen.has(specifier))queue.push(specifier);
+  }
+ }
+});
+
 test('Build statique : vraies pages, ressources et fichiers robots dans une sortie isolée',async()=>{
  const parent=await realpath(tmpdir());const dir=await mkdtemp(path.join(parent,'verbox-seo-test-'));
  try{
@@ -157,6 +171,9 @@ test('Build statique : vraies pages, ressources et fichiers robots dans une sort
     const file=pathname.endsWith('/')?pathname+'index.html':pathname;
     assert.ok((await readFile(path.join(dir,file.slice(1)))).length,`Ressource manquante : ${href}`);
    }
+  }
+  for(const file of publicFiles){
+   assert.ok((await readFile(path.join(dir,file))).length>0,`Fichier public manquant dans dist/ : ${file}`);
   }
   assert.equal(await readFile(path.join(dir,'CNAME'),'utf8'),'verbox.example\n');
   assert.equal(await readFile(path.join(dir,'.nojekyll'),'utf8'),'');
