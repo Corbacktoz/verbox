@@ -58,6 +58,59 @@ test('Saisie : casse et espaces tolérés, accents et conjugaisons exigés',()=>
  assert.ok(!isCorrect('chante','chanté'));assert.ok(!isCorrect('je chante','chante'));
  assert.ok(!isCorrect('<img src=x onerror=alert(1)>','chante'));
 });
+test('Variantes grammaticales : accord du participe passé avec être, politesse et puis',()=>{
+ const poolCM2=questionPool('CM2');
+ const poolCM1=questionPool('CM1');
+
+ // 1. partir, passé composé, il / elle -> est parti ou est partie
+ const qPartir=poolCM1.find(q=>q.verb==='partir'&&q.tense==='compose'&&q.index===2);
+ assert.ok(isCorrect('est parti',qPartir.answer,qPartir));
+ assert.ok(isCorrect('est partie',qPartir.answer,qPartir));
+ assert.ok(isCorrect('  EST PARTIE  ',qPartir.answer,qPartir));
+ assert.ok(!isCorrect('est partis',qPartir.answer,qPartir));
+
+ // 2. aller, passé composé, je -> suis allé ou suis allée
+ const qAller=poolCM1.find(q=>q.verb==='aller'&&q.tense==='compose'&&q.index===0);
+ assert.ok(isCorrect('suis allé',qAller.answer,qAller));
+ assert.ok(isCorrect('suis allée',qAller.answer,qAller));
+ assert.ok(!isCorrect('suis allés',qAller.answer,qAller));
+
+ // 3. venir, plus-que-parfait, ils / elles -> étaient venus ou étaient venues
+ const qVenir=poolCM2.find(q=>q.verb==='venir'&&q.tense==='parfait'&&q.index===5);
+ assert.ok(isCorrect('étaient venus',qVenir.answer,qVenir));
+ assert.ok(isCorrect('étaient venues',qVenir.answer,qVenir));
+ assert.ok(!isCorrect('étaient venu',qVenir.answer,qVenir));
+
+ // 4. pouvoir, présent, je -> peux ou puis
+ const qPouvoir=poolCM2.find(q=>q.verb==='pouvoir'&&q.tense==='present'&&q.index===0);
+ assert.ok(isCorrect('peux',qPouvoir.answer,qPouvoir));
+ assert.ok(isCorrect('puis',qPouvoir.answer,qPouvoir));
+ assert.ok(isCorrect('PUIS',qPouvoir.answer,qPouvoir));
+ assert.ok(!isCorrect('pui',qPouvoir.answer,qPouvoir));
+ const qPouvoirTu=poolCM2.find(q=>q.verb==='pouvoir'&&q.tense==='present'&&q.index===1);
+ assert.ok(!isCorrect('puis',qPouvoirTu.answer,qPouvoirTu));
+
+ // 5. vous singulier de politesse et pluriel
+ const qAllerVous=poolCM1.find(q=>q.verb==='aller'&&q.tense==='compose'&&q.index===4);
+ assert.ok(isCorrect('êtes allés',qAllerVous.answer,qAllerVous));
+ assert.ok(isCorrect('êtes allées',qAllerVous.answer,qAllerVous));
+ assert.ok(isCorrect('êtes allé',qAllerVous.answer,qAllerVous));
+ assert.ok(isCorrect('êtes allée',qAllerVous.answer,qAllerVous));
+
+ // 6. Vérifier que les choix QCM n'incluent aucune variante valide comme mauvais choix
+ for(let s=0;s<20;s++){
+  const session=makeSession({level:'CM2',random:()=>Math.random()});
+  for(const q of session){
+   if(q.format==='choice'){
+    const validNorms=new Set((q.validAnswers||[q.answer]).map(a=>a.trim().toLowerCase()));
+    const nonAnswerChoices=q.choices.filter(c=>c!==q.answer);
+    for(const c of nonAnswerChoices){
+     assert.ok(!validNorms.has(c.trim().toLowerCase()),`Distracteur invalide trouvé: ${c} pour la question ${q.id}`);
+    }
+   }
+  }
+ }
+});
 test('Migration et mémoire corrompue ne créent pas de faux progrès',()=>{
  assert.deepEqual(sanitizeLearning(undefined),{});
  assert.deepEqual(sanitizeLearning({unknown:{seen:10},[questionPool('CE2')[0].id]:{seen:'bad'}}),{});

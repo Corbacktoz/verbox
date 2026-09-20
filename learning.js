@@ -1,4 +1,4 @@
-import {allowedVerbs,levelTenses,persons,tenses,shuffle,localDate} from './core.js';
+import {allowedVerbs,levelTenses,persons,tenses,shuffle,localDate,getValidAnswers} from './core.js';
 
 export const formats={choice:'Choisir la réponse',write:'Écrire le verbe',sentence:'Compléter la phrase',correct:'Réparer la phrase'};
 const complements={chanter:'une chanson',jouer:'dans le jardin',parler:'avec les voisins',dessiner:'un dragon',aimer:'les histoires',être:'ici',avoir:'une idée',finir:'le puzzle',prendre:'un livre',faire:'un dessin',dire:'bonjour',regarder:'les étoiles',écouter:'une histoire',trouver:'un trésor',chercher:'un indice',donner:'un conseil',porter:'un sac',préparer:'le goûter',raconter:'une aventure',demander:'de l’aide',travailler:'sur un projet',marcher:'dans la forêt',danser:'sur la musique',sauter:'sur place',visiter:'un musée',aider:'un ami',penser:'à la suite',compter:'les étoiles',montrer:'le chemin',garder:'un secret',choisir:'un livre',réussir:'le défi',grandir:'chaque année',remplir:'une boîte',réfléchir:'à une énigme',voir:'un oiseau',vouloir:'apprendre',pouvoir:'continuer',savoir:'nager',lire:'une histoire',manger:'une pomme',commencer:'un livre',nettoyer:'la chambre',envoyer:'un message',mettre:'un manteau',aller:'à l’école',venir:'au parc',partir:'en vacances'};
@@ -7,7 +7,22 @@ export const questionId=(verb,tense,index)=>`${verb}:${tense}:${index}`;
 export function questionPool(level,tense='mixed') {
  const times=tense==='mixed'?levelTenses[level]:levelTenses[level]?.includes(tense)?[tense]:[];
  if(!times)throw new Error('Niveau inconnu');
- return times.flatMap(time=>allowedVerbs(level).flatMap(verb=>persons.map((person,index)=>({id:questionId(verb.infinitive,time,index),verb:verb.infinitive,tense:time,person,index,answer:verb[time][index],complement:complements[verb.infinitive],forms:verb[time],alternatives:Object.keys(tenses).map(t=>verb[t][index])}))));
+ return times.flatMap(time=>allowedVerbs(level).flatMap(verb=>persons.map((person,index)=>{
+   const answer = verb[time][index];
+   const validAnswers = getValidAnswers(verb, time, index);
+   return {
+     id:questionId(verb.infinitive,time,index),
+     verb:verb.infinitive,
+     tense:time,
+     person,
+     index,
+     answer,
+     validAnswers,
+     complement:complements[verb.infinitive],
+     forms:verb[time],
+     alternatives:Object.keys(tenses).map(t=>verb[t][index])
+   };
+ })));
 }
 const validIds=new Set(questionPool('CM2').map(q=>q.id));
 export function sanitizeLearning(value) {
@@ -20,7 +35,16 @@ export function sanitizeLearning(value) {
  return clean;
 }
 export function normalizeAnswer(value) { return String(value).normalize('NFC').toLocaleLowerCase('fr').trim().replace(/[’‘]/g,"'").replace(/\s+/g,' '); }
-export function isCorrect(value,answer) { return normalizeAnswer(value)===normalizeAnswer(answer); }
+export function isCorrect(value,answer,question) {
+ const normalized=normalizeAnswer(value);
+ if(normalized===normalizeAnswer(answer))return true;
+ if(question){
+  const valids=question.validAnswers||getValidAnswers(question.verb,question.tense,question.index);
+  if(valids?.some(a=>normalizeAnswer(a)===normalized))return true;
+  if(question.verb==='pouvoir'&&question.tense==='present'&&question.index===0&&normalized==='puis')return true;
+ }
+ return false;
+}
 export function recordAnswer(memory,q,correct,now=Date.now()) {
  const previous=memory[q.id];const streak=correct?(previous?.streak||0)+1:0;
  memory[q.id]={seen:(previous?.seen||0)+1,streak,bestStreak:Math.max(previous?.bestStreak||0,streak),last:now,due:now+(correct?[1,3,7,14,30][Math.min(streak-1,4)]*DAY:0),wrong:!correct};
@@ -35,7 +59,8 @@ export function makeSession({level,tense='mixed',format='mixed',memory={},review
  const ordered=review?[...due,...fresh,...familiar]:[...due.slice(0,3),...fresh,...due.slice(3),...familiar];
  const rotation=Object.keys(formats);
  return ordered.slice(0,count).map((q,i)=>{
-  const candidates=[...new Set([...q.forms,...q.alternatives])].filter(x=>x!==q.answer);
+  const validNorms=new Set((q.validAnswers||[q.answer]).map(normalizeAnswer));
+  const candidates=[...new Set([...q.forms,...q.alternatives])].filter(x=>!validNorms.has(normalizeAnswer(x)));
   const type=format==='mixed'?rotation[(i+(memory[q.id]?.seen||0))%rotation.length]:format;
   if(!formats[type])throw new Error('Format inconnu');
   return {...q,format:type,choices:shuffle([q.answer,...shuffle(candidates,random).slice(0,3)],random),wrongForm:shuffle(candidates,random)[0],review:!!memory[q.id]&&memory[q.id].due<=now};

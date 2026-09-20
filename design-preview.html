@@ -563,6 +563,13 @@ button.avatar:focus-visible {
   margin-top: var(--space-2);
 }
 
+/* Public guides: wrapping lists remain usable on narrow screens. */
+.verb-list { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5); padding-left: var(--space-5); margin-bottom: var(--space-4); }
+.verb-list li { padding-right: var(--space-3); }
+.lesson-links li p { margin: var(--space-2) 0; }
+.page-footer { flex-wrap: wrap; gap: var(--space-3); }
+.page-footer a { overflow-wrap: anywhere; }
+
 
 
 @media(max-width:600px){main{padding:20px 16px}section,header{padding:20px}.swatches{grid-template-columns:repeat(2,minmax(0,1fr))}.lesson{min-width:100%}.viewport-demo{padding:16px}.answer{font-size:14px}}

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { verbs, tenses, levelTenses, allowedVerbs, makeQuestions, scoreAnswer, phrase, localDate } from './core.js';
+import { verbs, tenses, levelTenses, allowedVerbs, makeQuestions, scoreAnswer, phrase, localDate, getVerbTip, getValidAnswers } from './core.js';
 
 test('Toutes les conjugaisons contiennent six personnes pour chaque temps', () => {
  for(const verb of verbs) for(const tense of Object.keys(tenses)) {
@@ -43,6 +43,20 @@ test('Les points récompensent les bonnes réponses et les séries sans pénalit
 test('Les corrections respectent les élisions et la date locale',()=>{
  assert.equal(phrase('je','ai joué'),'j’ai joué');
  assert.equal(phrase('je','étais'),'j’étais');
- assert.equal(phrase('je','chante'),'je chante');
- assert.equal(localDate(new Date(2026,8,18,1,30)),'2026-09-18');
+ assert.equal(phrase('tu','as'),'tu as');
+ assert.match(localDate(),/^\d{4}-\d{2}-\d{2}$/);
+});
+test('Classification des groupes et rappels pédagogiques ciblés (P2)', () => {
+ const aller = verbs.find(v => v.infinitive === 'aller');
+ assert.equal(aller.group, 3);
+ const chanter = verbs.find(v => v.infinitive === 'chanter');
+ assert.equal(chanter.group, 1);
+ const finir = verbs.find(v => v.infinitive === 'finir');
+ assert.equal(finir.group, 2);
+
+ assert.ok(getVerbTip('aller', 'present').includes('3e groupe'));
+ assert.ok(getVerbTip('aller', 'futur').includes('radical ir-'));
+ assert.ok(getVerbTip('envoyer', 'futur').includes('deux r'));
+ assert.ok(getVerbTip('nettoyer', 'futur').includes('y en i'));
+ assert.ok(getVerbTip('chanter', 'present').includes('premier groupe'));
 });

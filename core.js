@@ -1,11 +1,11 @@
 export const persons = ['je', 'tu', 'il / elle', 'nous', 'vous', 'ils / elles'];
 export const tenses = {
-  present: { name: 'Le présent', subtitle: 'Ce qui se passe maintenant', color: 'sage', icon: 'sun', example: 'Je joue dans le jardin.', tip: 'Au présent, les verbes en -er prennent : -e, -es, -e, -ons, -ez, -ent.' },
+  present: { name: 'Le présent', subtitle: 'Ce qui se passe maintenant', color: 'sage', icon: 'sun', example: 'Je joue dans le jardin.', tip: 'Au présent, les verbes du premier groupe prennent : -e, -es, -e, -ons, -ez, -ent.' },
   imparfait: { name: 'L’imparfait', subtitle: 'Les habitudes d’autrefois', color: 'peach', icon: 'rewind', example: 'Je jouais dans le jardin.', tip: 'À l’imparfait, les terminaisons sont : -ais, -ais, -ait, -ions, -iez, -aient.' },
-  futur: { name: 'Le futur', subtitle: 'Ce qui se passera demain', color: 'lavender', icon: 'arrow', example: 'Je jouerai dans le jardin.', tip: 'Au futur, les terminaisons sont : -ai, -as, -a, -ons, -ez, -ont. Pour les verbes en -er, on les ajoute à l’infinitif.' },
-  compose: { name: 'Le passé composé', subtitle: 'Les actions déjà terminées', color: 'yellow', icon: 'check', example: 'J’ai joué dans le jardin.', tip: 'Le passé composé se construit avec avoir ou être au présent, suivi du participe passé.' },
+  futur: { name: 'Le futur', subtitle: 'Ce qui se passera demain', color: 'lavender', icon: 'arrow', example: 'Je jouerai dans le jardin.', tip: 'Au futur, les terminaisons sont : -ai, -as, -a, -ons, -ez, -ont. Pour les verbes réguliers en -er et -ir, on les ajoute à l’infinitif.' },
+  compose: { name: 'Le passé composé', subtitle: 'Les actions déjà terminées', color: 'yellow', icon: 'check', example: 'J’ai joué dans le jardin.', tip: 'Le passé composé se construit avec un auxiliaire (avoir ou être) au présent, suivi du participe passé.' },
   simple: { name: 'Le passé simple', subtitle: 'Le temps des récits', color: 'blue', icon: 'book', example: 'Il joua dans le jardin.', tip: 'Dans les récits, on rencontre souvent le passé simple à la 3e personne : il joua, ils jouèrent ; il finit, ils finirent.' },
-  parfait: { name: 'Le plus-que-parfait', subtitle: 'Avant une autre action passée', color: 'pink', icon: 'history', example: 'J’avais joué avant de dîner.', tip: 'Le plus-que-parfait se construit avec avoir ou être à l’imparfait, suivi du participe passé.' }
+  parfait: { name: 'Le plus-que-parfait', subtitle: 'Avant une autre action passée', color: 'pink', icon: 'history', example: 'J’avais joué avant de dîner.', tip: 'Le plus-que-parfait se construit avec un auxiliaire (avoir ou être) à l’imparfait, suivi du participe passé.' }
 };
 const forms = s => s.split('|');
 function regular(infinitive, participle) {
@@ -44,6 +44,7 @@ verbs.push(
 );
 export function allowedVerbs(level) { return level==='CE2'?verbs.filter(v=>v.infinitive.endsWith('er')||['être','avoir'].includes(v.infinitive)):verbs; }
 for (const verb of verbs) {
+  verb.group = verb.infinitive === 'aller' ? 3 : (verb.infinitive.endsWith('er') ? 1 : (verb.infinitive.endsWith('ir') && verb.present[3].endsWith('issons') ? 2 : 3));
   if (verb.auxiliary === 'être') {
     const parts = [verb.participle, verb.participle, verb.participle, verb.participle + 's', verb.participle + 's', verb.participle + 's'];
     verb.compose = forms('suis|es|est|sommes|êtes|sont').map((a, i) => `${a} ${parts[i]}`);
@@ -53,6 +54,72 @@ for (const verb of verbs) {
     verb.parfait = forms('avais|avais|avait|avions|aviez|avaient').map(a => `${a} ${verb.participle}`);
   }
 }
+export function getValidAnswers(verb, tense, index) {
+  const v = typeof verb === 'string' ? verbs.find(item => item.infinitive === verb) : verb;
+  if (!v) return [];
+  const canonical = v[tense]?.[index];
+  if (!canonical) return [];
+  const answers = new Set([canonical]);
+
+  if (v.infinitive === 'pouvoir' && tense === 'present' && index === 0) {
+    answers.add('puis');
+  }
+
+  if (v.auxiliary === 'être' && (tense === 'compose' || tense === 'parfait')) {
+    const aux = (tense === 'compose'
+      ? ['suis', 'es', 'est', 'sommes', 'êtes', 'sont']
+      : ['étais', 'étais', 'était', 'étions', 'étiez', 'étaient'])[index];
+    const p = v.participle;
+    if (index === 0 || index === 1 || index === 2) {
+      answers.add(`${aux} ${p}`);
+      answers.add(`${aux} ${p}e`);
+    } else if (index === 3 || index === 5) {
+      answers.add(`${aux} ${p}s`);
+      answers.add(`${aux} ${p}es`);
+    } else if (index === 4) {
+      answers.add(`${aux} ${p}s`);
+      answers.add(`${aux} ${p}es`);
+      answers.add(`${aux} ${p}`);
+      answers.add(`${aux} ${p}e`);
+    }
+  }
+
+  return Array.from(answers);
+}
+
+export function getVerbTip(verb, tense) {
+  const v = typeof verb === 'string' ? verbs.find(item => item.infinitive === verb) : verb;
+  if (!v) return tenses[tense]?.tip || '';
+  if (tense === 'present') {
+    if (v.infinitive === 'aller') return 'Aller est un verbe du 3e groupe : je vais, tu vas, il va, nous allons, vous allez, ils vont.';
+    if (v.infinitive === 'manger') return 'Pour manger au présent avec nous, on écrit mangeons (avec un e après le g pour garder le son [ʒ]).';
+    if (v.infinitive === 'commencer') return 'Pour commencer au présent avec nous, on écrit commençons (avec une cédille sous le c pour garder le son [s]).';
+    if (v.group === 1) return tenses.present.tip;
+    if (v.group === 2) return 'Au présent, les verbes du 2e groupe prennent : -is, -is, -it, -issons, -issez, -issent.';
+    return 'À retenir pour ' + v.infinitive + ' au présent : ' + v.present.map((form, i) => phrase(['je','tu','il','nous','vous','ils'][i], form)).join(', ') + '.';
+  }
+  if (tense === 'futur') {
+    if (v.infinitive === 'aller') return 'Au futur, le verbe aller prend le radical ir- : j’irai, tu iras, il ira, nous irons, vous irez, ils iront.';
+    if (v.infinitive === 'envoyer') return 'Au futur, le verbe envoyer prend deux r : j’enverrai, tu enverras, il enverra, nous enverrons, vous enverrez, ils enverront.';
+    if (v.infinitive === 'nettoyer') return 'Au futur, nettoyer change son y en i devant un e muet : je nettoierai, tu nettoieras...';
+    if (v.infinitive === 'être') return 'Au futur, être prend le radical ser- : je serai, tu seras, il sera, nous serons, vous serez, ils seront.';
+    if (v.infinitive === 'avoir') return 'Au futur, avoir prend le radical aur- : j’aurai, tu auras, il aura, nous aurons, vous aurez, ils auront.';
+    if (v.infinitive === 'faire') return 'Au futur, faire prend le radical fer- : je ferai, tu feras, il fera, nous ferons, vous ferez, ils feront.';
+    if (v.infinitive === 'voir') return 'Au futur, voir prend deux r : je verrai, tu verras, il verra, nous verrons, vous verrez, ils verront.';
+    if (v.infinitive === 'pouvoir') return 'Au futur, pouvoir prend deux r : je pourrai, tu pourras, il pourra, nous pourrons, vous pourrez, ils pourront.';
+    if (v.infinitive === 'savoir') return 'Au futur, savoir prend le radical saur- : je saurai, tu sauras, il saura, nous saurons, vous saurez, ils sauront.';
+    if (v.infinitive === 'venir') return 'Au futur, venir prend le radical viendr- : je viendrai, tu viendras, il viendra...';
+    return tenses.futur.tip;
+  }
+  if (tense === 'compose' || tense === 'parfait') {
+    if (v.auxiliary === 'être') {
+      return `Le verbe ${v.infinitive} se conjugue avec l’auxiliaire être (${tense === 'compose' ? 'au présent' : 'à l’imparfait'}). Le participe passé s’accorde avec le sujet.`;
+    }
+    return tenses[tense].tip;
+  }
+  return tenses[tense].tip;
+}
+
 export const levelTenses = { CE2:['present','imparfait','futur'], CM1:['present','imparfait','futur','compose'], CM2:Object.keys(tenses) };
 export function shuffle(items, random = Math.random) {
   const copy = [...items];
@@ -64,8 +131,10 @@ export function makeQuestions(level, tense, count=10) {
   const pool = allowed.flatMap(verb => persons.map((person,index) => ({ verb, person, index })));
   return shuffle(pool).slice(0,count).map(({verb,person,index}) => {
     const answer = verb[tense][index];
-    const candidates = [...new Set([...verb[tense], ...Object.keys(tenses).map(t => verb[t][index])])].filter(x => x !== answer);
-    return { verb:verb.infinitive, person, answer, choices:shuffle([answer,...shuffle(candidates).slice(0,3)]) };
+    const validAnswers = getValidAnswers(verb, tense, index);
+    const validSet = new Set(validAnswers);
+    const candidates = [...new Set([...verb[tense], ...Object.keys(tenses).map(t => verb[t][index])])].filter(x => !validSet.has(x));
+    return { verb:verb.infinitive, person, answer, validAnswers, choices:shuffle([answer,...shuffle(candidates).slice(0,3)]) };
   });
 }
 export function scoreAnswer(correct, streak) { return correct ? 10 + (streak >= 3 ? 5 : 0) : 0; }

@@ -1,6 +1,7 @@
 import { homeGuide, renderContent, levelPath } from './site-content.js';
-import { tenses, verbs, persons, levelTenses, scoreAnswer, localDate, phrase } from './core.js';
-import {formats,sanitizeLearning,makeSession,recordAnswer,isCorrect,learningStats,journey,dailyMission} from './learning.js';
+import { tenses, verbs, persons, levelTenses, scoreAnswer, localDate, phrase, getVerbTip } from './core.js';
+import { formats, sanitizeLearning, makeSession, recordAnswer, isCorrect, learningStats, journey, dailyMission } from './learning.js';
+import { loadProgress, PROGRESS_KEY } from './progress-storage.js';
 const escapeHTML=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 const paths = {
@@ -178,24 +179,26 @@ function renderWardrobe() {
   });
 }
 
+let wardrobeReturnFocus = null;
 function openWardrobe() {
   if (!wardrobeDialog) return;
+  wardrobeReturnFocus = document.activeElement;
   renderWardrobe();
   wardrobeDialog.showModal();
+  wardrobeDialog.querySelector('#close-wardrobe')?.focus();
 }
 document.querySelector('#open-wardrobe')?.addEventListener('click', openWardrobe);
+wardrobeDialog?.addEventListener('close', () => {
+  if (wardrobeReturnFocus?.isConnected) wardrobeReturnFocus.focus();
+  else document.querySelector('#open-wardrobe')?.focus();
+});
 
 const main = document.querySelector('#main');
 const dialog = document.querySelector('#quiz-dialog');
-const KEY = 'verbox-progress-v1';
-let storageAvailable = true;
-let saved;
-try { saved = JSON.parse(localStorage.getItem(KEY) || localStorage.getItem('conjugo-progress-v1') || 'null'); } catch { storageAvailable = false; }
-const initial = { points:0, sessions:[], daily:{}, level:'CE2' };
-let state = saved && typeof saved === 'object' && Number.isFinite(saved.points) && saved.points >= 0 && Array.isArray(saved.sessions) && saved.daily && typeof saved.daily === 'object' ? saved : initial;
-state.sessions = state.sessions.filter(s => s && levelTenses[s.level] && (tenses[s.tense] || s.tense==='mixed') && Number.isFinite(s.correct) && Number.isFinite(s.points) && Number.isFinite(s.answered) && typeof s.date === 'string' && Number.isFinite(Date.parse(s.date)));
-state.sessions=state.sessions.map(s=>({...s,formats:Array.isArray(s.formats)?s.formats.filter(f=>formats[f]):['choice'],formatCounts:Object.fromEntries(Object.keys(formats).map(f=>[f,Number.isFinite(s.formatCounts?.[f])?Math.max(0,Math.min(10,s.formatCounts[f])):0]))}));
-state.learning=sanitizeLearning(saved?.learning);
+const KEY = PROGRESS_KEY;
+const loaded = loadProgress(localStorage);
+let storageAvailable = loaded.storageAvailable;
+let state = loaded.state;
 let level = levelTenses[document.body.dataset.level] ? document.body.dataset.level : levelTenses[state.level] ? state.level : 'CE2';
 const requestedTense = new URLSearchParams(location.search).get('temps');
 let selected = levelTenses[level].includes(requestedTense) ? requestedTense : 'present';
@@ -287,7 +290,7 @@ function navigate(next) { location.assign({accueil:'/',progres:'/progres/',fiche
 // Public navigation uses native links so URLs work without JavaScript.
 
 function startQuiz(options={}) {
- returnFocus=document.activeElement;
+ if (!dialog.contains(document.activeElement)) returnFocus=document.activeElement;
  const settings={level,tense:mixTenses?'mixed':selected,format:exerciseFormat,mode,review:false,...options};
  quiz={...settings,questions:makeSession({...settings,memory:state.learning}),memory:structuredClone(state.learning),index:0,points:0,correct:0,streak:0,answered:0,locked:false,finished:false,started:Date.now(),deadline:Date.now()+90000,remaining:90,mistakes:[],formatCounts:{},confirming:false,chaptersBefore:journey(level,state.sessions,state.learning).filter(c=>c.done).length};
  renderQuestion();dialog.showModal();focusAnswer();
@@ -326,7 +329,7 @@ function renderQuestion() {
 function answerQuestion(chosen) {
   if(!quiz||quiz.locked||quiz.finished||!chosen.trim())return;
   if(quiz.mode==='timed'&&Date.now()>=quiz.deadline){finishQuiz(true);return;}
-  const q=quiz.questions[quiz.index],correct=isCorrect(chosen,q.answer);
+  const q=quiz.questions[quiz.index],correct=isCorrect(chosen,q.answer,q);
   quiz.locked=true;quiz.answered++;quiz.streak=correct?quiz.streak+1:0;
   quiz.formatCounts[q.format]=(quiz.formatCounts[q.format]||0)+1;
   recordAnswer(quiz.memory,q,correct);
@@ -338,13 +341,15 @@ function answerQuestion(chosen) {
   }else{
     playSound('wrong');
   }
-  dialog.querySelectorAll('.answer').forEach(btn=>{btn.disabled=true;const value=q.choices[Number(btn.dataset.choice)];if(value===q.answer)btn.classList.add('correct');else if(value===chosen)btn.classList.add('wrong');});
+  dialog.querySelectorAll('.answer').forEach(btn=>{btn.disabled=true;const value=q.choices[Number(btn.dataset.choice)];if(isCorrect(value,q.answer,q))btn.classList.add('correct');else if(value===chosen)btn.classList.add('wrong');});
   dialog.querySelectorAll('#written-form input, #written-form button').forEach(el=>el.disabled=true);
   dialog.querySelector('#quiz-points').innerHTML='<span aria-hidden="true">✦</span> '+quiz.points+' pts';
   const verb=verbs.find(v=>v.infinitive===q.verb);
-  const reminder=q.tense==='present'&&!q.verb.endsWith('er')?'À retenir : '+verb.present.map((form,i)=>phrase(['je','tu','il','nous','vous','ils'][i],form)).join(', ')+'.':tenses[q.tense].tip;
-  dialog.querySelector('#feedback').innerHTML='<div class="feedback '+(correct?'':'incorrect')+'"><strong>'+(correct?'Bien joué ! +'+points+' points'+(quiz.streak>=3?' · Quelle série !':''):'On apprend ensemble !')+'</strong><div>'+(correct?'Tu as bien trouvé : <b>'+phrase(q.person,q.answer)+'</b> <button type="button" class="speech-btn small" id="speak-answer" aria-label="Écouter la conjugaison" title="Écouter">'+icon('speaker')+'</button>.':'La bonne réponse : <b>'+phrase(q.person,q.answer)+'</b> <button type="button" class="speech-btn small" id="speak-answer" aria-label="Écouter la bonne réponse" title="Écouter">'+icon('speaker')+'</button>.')+'</div>'+(correct?'':'<div>Cette conjugaison reviendra pour t’aider à la retenir.</div>')+'<small>'+reminder+'</small></div>';
-  dialog.querySelector('#speak-answer')?.addEventListener('click',()=>speak(phrase(q.person,q.answer)));
+  const reminder=getVerbTip(verb,q.tense);
+  const chosenTrimmed=chosen.trim();
+  const acceptedAnswer=correct?(q.validAnswers?.find(v=>v.toLowerCase()===chosenTrimmed.toLowerCase())||q.answer):q.answer;
+  dialog.querySelector('#feedback').innerHTML='<div class="feedback '+(correct?'':'incorrect')+'"><strong>'+(correct?'Bien joué ! +'+points+' points'+(quiz.streak>=3?' · Quelle série !':''):'On apprend ensemble !')+'</strong><div>'+(correct?'Tu as bien trouvé : <b>'+phrase(q.person,acceptedAnswer)+'</b> <button type="button" class="speech-btn small" id="speak-answer" aria-label="Écouter la conjugaison" title="Écouter">'+icon('speaker')+'</button>.':'La bonne réponse : <b>'+phrase(q.person,q.answer)+'</b> <button type="button" class="speech-btn small" id="speak-answer" aria-label="Écouter la bonne réponse" title="Écouter">'+icon('speaker')+'</button>.')+'</div>'+(correct?'':'<div>Cette conjugaison reviendra pour t’aider à la retenir.</div>')+'<small>'+reminder+'</small></div>';
+  dialog.querySelector('#speak-answer')?.addEventListener('click',()=>speak(phrase(q.person,acceptedAnswer)));
   const next=dialog.querySelector('#next-question');next.hidden=false;next.innerHTML=(quiz.index===9?'Voir mon résultat':'Suivant')+' '+icon('arrow');next.focus();
 }
 function nextQuestion() { if(!quiz?.locked||quiz.finished)return;if(quiz.index===9){finishQuiz(false);return;}quiz.index++;quiz.locked=false;withViewTransition(()=>renderQuestion()); }
@@ -373,7 +378,22 @@ function confirmQuit() {
  dialog.querySelector('#keep-playing').addEventListener('click',()=>{quiz.confirming=false;dialog.replaceChildren(...previous.childNodes);(dialog.querySelector('#next-question:not([hidden])')||dialog.querySelector('#written-answer')||dialog.querySelector('.answer')).focus();tick();});
  dialog.querySelector('#keep-playing').focus();
 }
-function closeQuiz() { clearInterval(timer);timer=null;quiz=null;dialog.close();if(returnFocus?.isConnected)returnFocus.focus();else main.focus(); }
+function closeQuiz() {
+ clearInterval(timer);timer=null;quiz=null;dialog.close();
+ const target=(returnFocus?.isConnected?returnFocus:null)||(returnFocus?.id?document.getElementById(returnFocus.id):null)||(returnFocus?.dataset?.tense?main.querySelector(`[data-tense="${returnFocus.dataset.tense}"]`):null)||(returnFocus?.dataset?.level?main.querySelector(`[data-level="${returnFocus.dataset.level}"]`):null);
+ if(target&&typeof target.focus==='function')target.focus();
+ else main.focus();
+}
+function trapFocus(e, container) {
+ if(e.key!=='Tab')return;
+ const focusables=container.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
+ if(!focusables.length)return;
+ const first=focusables[0],last=focusables[focusables.length-1];
+ if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+ else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+}
+dialog?.addEventListener('keydown',e=>trapFocus(e,dialog));
+wardrobeDialog?.addEventListener('keydown',e=>trapFocus(e,wardrobeDialog));
 dialog.addEventListener('cancel',event=>{event.preventDefault();confirmQuit();});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')tick();});
 render();

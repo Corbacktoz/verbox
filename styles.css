@@ -17,7 +17,8 @@
 *{
   box-sizing:border-box}
 body{
-  margin:0}
+  margin:0;
+  overflow-x:hidden}
 button,a,input{
   -webkit-tap-highlight-color:transparent}
 button,input,select{
@@ -167,7 +168,8 @@ svg{
   color:var(--color-border-strong);
   text-align:center}
 .workspace{
-  margin-left:248px}
+  margin-left:248px;
+  overflow-x:clip}
 .topbar{
   height:91px;
   border-bottom:1px solid var(--line);
@@ -711,10 +713,14 @@ main{
   margin:var(--space-5) auto 0;
   padding:var(--space-5) var(--space-12) var(--space-6);
   display:flex;
+  flex-wrap:wrap;
+  gap:var(--space-3);
   justify-content:space-between;
   border-top:1px solid var(--line);
   font-size:var(--font-size-caption);
   color:var(--color-border-strong)}
+.page-footer a{
+  overflow-wrap:anywhere}
 .orange{
   color:var(--orange);
   font-size:var(--font-size-small);
@@ -1188,7 +1194,8 @@ dialog::backdrop{
     width:16px;
     height:16px}
   .workspace{
-    margin:0}
+    margin:0;
+    overflow-x:clip}
   .topbar{
     position:absolute;
     top:13px;
