@@ -1,14 +1,14 @@
 import { tenses, verbs, persons, levelTenses, phrase } from './core.js';
 import { renderPrivacy } from './privacy-content.js';
 import { renderProject } from './project-content.js';
-import { renderLevelGuide, verbCategories } from './level-content.js';
+import { renderLevelGuide, renderLevelTense, verbCategories } from './level-content.js';
 import { publishedVerbs, renderVerb, renderVerbHub, verbPath, verbLink } from './verb-content.js';
 
 export const lessonSlugs = { present:'le-present', imparfait:'imparfait', futur:'futur-simple', compose:'passe-compose', simple:'passe-simple', parfait:'plus-que-parfait' };
 export const levelDescriptions = {
- CE2:'En CE2, consolide les bases avec les verbes en -er, être et avoir. Reconnais le présent, raconte une habitude à l’imparfait et imagine demain au futur.',
- CM1:'En CM1, entraîne-toi avec des verbes fréquents comme finir, prendre, faire et dire. Révise les temps simples et apprends à former le passé composé avec avoir.',
- CM2:'En CM2, approfondis les six temps proposés. Découvre les formes du passé simple dans les récits et le plus-que-parfait pour situer une action avant une autre action passée.'
+ CE2:'En CE2, consolide les bases avec les verbes en -er (chanter, jouer, manger...), être, avoir et aller. Reconnais le présent, raconte une habitude à l’imparfait et imagine demain au futur simple.',
+ CM1:'En CM1, entraîne-toi sur les verbes fréquents : finir, aller, venir, partir, mettre, prendre, faire et dire. Révise les temps simples et apprends à former le passé composé avec avoir et être.',
+ CM2:'En CM2, maîtrise les six temps de l’école primaire sur l’ensemble des verbes : être, avoir, aller, venir, partir, mettre, prendre, faire, dire, voir, vouloir, pouvoir et les verbes en -er et -ir. Découvre le passé simple et le plus-que-parfait avec avoir et être.'
 };
 export const lessonNotes = {
  present: ['Le présent sert notamment à parler de ce qui se passe maintenant, d’une habitude ou d’un fait généralement vrai. « Je joue aujourd’hui » et « Je joue chaque mercredi » emploient tous deux le présent.', 'Pour chanter, retire -er et ajoute la terminaison du sujet : je chante, nous chantons. Être et avoir ont des formes particulières à apprendre : nous sommes, vous êtes ; nous avons, vous avez.', 'Ne confonds pas tu chantes et il chante. À l’oral, les formes se ressemblent souvent ; à l’écrit, le sujet aide à choisir la terminaison.'],
@@ -20,9 +20,23 @@ export const lessonNotes = {
 };
 export const lessonPath = key => `/fiches/${lessonSlugs[key]}/`;
 export const levelPath = level => `/conjugaison-${level.toLowerCase()}/`;
+export const levelTensePath = (level, tense) => `/conjugaison-${level.toLowerCase()}/${lessonSlugs[tense]}/`;
+
+export const levelTenseRoutes = Object.entries(levelTenses).flatMap(([level, tList]) =>
+  tList.map(tense => ({
+    path: levelTensePath(level, tense),
+    page: 'palier',
+    level,
+    tense,
+    title: `${tenses[tense].name} ${level} : exercices et corrigé | Verbox`,
+    description: `Exercices corrigés sur ${tenses[tense].name.toLowerCase()} en ${level} : règles, verbes au programme (dont ${level==='CE2'?'manger, aller, être, avoir':level==='CM1'?'finir, aller, venir, partir, mettre':'être, avoir, aller, venir, partir, mettre, faire'}), phrases à compléter et corrigé détaillé.`
+  }))
+);
+
 export const routes = [
  {path:'/',page:'accueil',title:'Conjugaison CE2, CM1, CM2 : exercices gratuits | Verbox',description:'Apprends la conjugaison avec Verbox : exercices corrigés CE2, CM1 et CM2, fiches mémo, points et défis chronométrés. Gratuit, sans compte.'},
- ...Object.keys(levelTenses).map(level=>({path:levelPath(level),page:'accueil',level,title:`Conjugaison ${level} : exercices et fiches mémo | Verbox`,description:{CE2:'Révise le présent, l’imparfait et le futur en CE2. Des séries de 10 questions corrigées, des points et un mode sans chronomètre avec Verbox.',CM1:'Entraîne-toi à la conjugaison en CM1 : présent, imparfait, futur et passé composé. Exercices corrigés et défis de 90 secondes avec Verbox.',CM2:'Révise six temps en CM2, du présent au plus-que-parfait. Des exercices de conjugaison corrigés, des fiches et des points à gagner sur Verbox.'}[level]})),
+ ...Object.keys(levelTenses).map(level=>({path:levelPath(level),page:'accueil',level,title:`Conjugaison ${level} : exercices et fiches mémo | Verbox`,description:{CE2:'Révise le présent, l’imparfait et le futur en CE2 avec être, avoir, aller, manger et les verbes en -er. Exercices corrigés et fiches mémo sur Verbox.',CM1:'Entraîne-toi en CM1 sur les verbes fréquents (finir, aller, venir, partir, mettre, faire...). Présent, imparfait, futur, passé composé avec avoir et être.',CM2:'Maîtrise six temps en CM2 sur 48 verbes du primaire : être, avoir, aller, venir, partir, mettre, prendre, faire, dire, voir... Exercices corrigés avec Verbox.'}[level]})),
+ ...levelTenseRoutes,
  {path:'/fiches/',page:'fiches',title:'Fiches de conjugaison : règles et exemples | Verbox',description:'Consulte les fiches de conjugaison Verbox : présent, imparfait, futur, passé composé, passé simple et plus-que-parfait, avec tableaux et exemples.'},
  ...Object.keys(tenses).map(tense=>({path:lessonPath(tense),page:'lecon',tense,title:`${tenses[tense].name} : leçon et conjugaisons | Verbox`,description:`Apprends à conjuguer ${ {present:'au présent',imparfait:'à l’imparfait',futur:'au futur simple',compose:'au passé composé',simple:'au passé simple',parfait:'au plus-que-parfait'}[tense] } : règle, exemples et tableaux de verbes. Entraîne-toi avec les exercices corrigés Verbox.`})),
  {path:'/conjugaison/',page:'conjugaison',title:'Conjugaison : dix verbes, tableaux et exemples | Verbox',description:'Retrouve dix verbes fréquents classés par groupe et niveau, avec six temps de l’indicatif, des exemples et des liens vers les exercices Verbox.'},
@@ -33,16 +47,20 @@ export const routes = [
  {path:'/progres/',page:'progres',noindex:true,title:'Mes progrès en conjugaison | Verbox',description:'Retrouve tes points, tes trophées et tes derniers entraînements de conjugaison dans ton espace Verbox.'},
  {path:'/confidentialite/',page:'confidentialite',noindex:true,title:'Confidentialité et statistiques | Verbox',description:'Comprendre les données locales, la mesure d’audience et les moyens de contacter Verbox ou de s’opposer aux statistiques.'}
 ];
+
 export function homeGuide(level) {
- if(level)return renderLevelGuide(level,{description:levelDescriptions[level],lessonPath,verbLink});
+ if(level)return renderLevelGuide(level,{description:levelDescriptions[level],lessonPath,levelPath,levelTensePath,verbLink});
  const levels=level?[level]:Object.keys(levelTenses);
  return `<section class="seo-guide content-panel"><h2>${level?`Que réviser en conjugaison en ${level} ?`:'Apprendre la conjugaison du CE2 au CM2'}</h2>${levels.map(l=>`<h3><a href="${levelPath(l)}">Conjugaison ${l}</a></h3><p>${levelDescriptions[l]}</p>`).join('')}<h3>Des exercices corrigés, à ton rythme</h3><p>Chaque série propose dix questions. Choisis une réponse, écris une conjugaison, complète une phrase ou répare une erreur. Tu peux mélanger les quatre exercices et les temps de ton niveau. La banque contient 48 verbes, dont 31 accessibles en CE2. Une bonne réponse rapporte dix points, ou quinze à partir de trois bonnes réponses consécutives. En entraînement, tu disposes de tout le temps nécessaire. Le défi chrono dure 90 secondes.</p><p>Ces activités sont gratuites et sans compte. Les résultats sont conservés dans ton navigateur. Elles complètent les leçons de classe et ne couvrent pas à elles seules tout le programme.</p><h3>Les fiches pour t’aider</h3><p><a href="/conjugaison/">Consulter les tableaux par verbe</a></p><ul class="lesson-links">${(level?levelTenses[level]:Object.keys(tenses)).map(t=>`<li><a href="${lessonPath(t)}">${tenses[t].name} : règle et exemples</a></li>`).join('')}</ul></section>`;
 }
+
 export function renderLesson(tense) {
  const t=tenses[tense];const levels=Object.keys(levelTenses).filter(l=>levelTenses[l].includes(tense));
- return `<nav class="content-breadcrumb" aria-label="Fil d’Ariane"><a href="/">Accueil</a> / <a href="/fiches/">Fiches de conjugaison</a> / <span>${t.name}</span></nav><div class="greeting"><div><h1>${t.name} : leçon de conjugaison</h1><p>${t.subtitle}</p></div></div><article class="content-panel"><h2>Quand utiliser ce temps ?</h2><p>${lessonNotes[tense][0]}</p><h2>Comment le former ?</h2><p>${lessonNotes[tense][1]}</p><p class="memo-example">${t.example}</p><h2>Le point à retenir</h2><p>${lessonNotes[tense][2]}</p></article><div class="memo-grid">${['chanter','être','avoir','finir','prendre','faire'].map(inf=>{const v=verbs.find(v=>v.infinitive===inf);return `<section class="content-panel"><h2>Conjuguer ${verbLink(v)}</h2><table class="memo-table"><caption>${inf} — ${t.name.toLowerCase()}</caption><thead><tr><th scope="col">Sujet</th><th scope="col">Forme conjuguée</th></tr></thead><tbody>${persons.map((person,i)=>`<tr><th scope="row">${person}</th><td>${phrase(person,v[tense][i])}</td></tr>`).join('')}</tbody></table></section>`;}).join('')}</div><section class="content-panel seo-guide"><h2>À toi de t’entraîner</h2><p>Choisis ta classe pour ouvrir un exercice sur ce temps.</p><div class="public-links">${levels.map(l=>`<a class="secondary-button" href="${levelPath(l)}?temps=${tense}">Exercices ${l}</a>`).join('')}</div><p><a href="/fiches/">Consulter toutes les fiches de conjugaison</a></p></section>`;
+ return `<nav class="content-breadcrumb" aria-label="Fil d’Ariane"><a href="/">Accueil</a> / <a href="/fiches/">Fiches de conjugaison</a> / <span>${t.name}</span></nav><div class="greeting"><div><h1>${t.name} : leçon de conjugaison</h1><p>${t.subtitle}</p></div></div><article class="content-panel"><h2>Quand utiliser ce temps ?</h2><p>${lessonNotes[tense][0]}</p><h2>Comment le former ?</h2><p>${lessonNotes[tense][1]}</p><p class="memo-example">${t.example}</p><h2>Le point à retenir</h2><p>${lessonNotes[tense][2]}</p></article><div class="memo-grid">${['chanter','être','avoir','finir','prendre','faire'].map(inf=>{const v=verbs.find(v=>v.infinitive===inf);return `<section class="content-panel"><h2>Conjuguer ${verbLink(v)}</h2><table class="memo-table"><caption>${inf} — ${t.name.toLowerCase()}</caption><thead><tr><th scope="col">Sujet</th><th scope="col">Forme conjuguée</th></tr></thead><tbody>${persons.map((person,i)=>`<tr><th scope="row">${person}</th><td>${phrase(person,v[tense][i])}</td></tr>`).join('')}</tbody></table></section>`;}).join('')}</div><section class="content-panel seo-guide"><h2>À toi de t’entraîner</h2><p>Choisis ta classe pour ouvrir des exercices adaptés et leur corrigé sur ce temps.</p><div class="public-links">${levels.map(l=>`<a class="secondary-button" href="${levelTensePath(l, tense)}">Exercices ${l} — ${t.name}</a>`).join('')}</div><p><a href="/fiches/">Consulter toutes les fiches de conjugaison</a></p></section>`;
 }
+
 export function renderContent(route, config) {
+ if(route.page==='palier')return renderLevelTense(route.level,route.tense,{lessonPath,levelPath,levelTensePath,verbLink});
  if(route.page==='conjugaison')return renderVerbHub({levelPath,categories:verbCategories});
  if(route.page==='verbe')return renderVerb(verbs.find(v=>v.infinitive===route.verb),{lessonPath,levelPath});
  if(route.page==='apropos'||route.page==='mentions')return renderProject(route.page,config);

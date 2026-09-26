@@ -19,12 +19,18 @@ test('Pages publiques : HTML lisible, titre unique, canonique et données struct
   assert.equal((html.match(/<title>/g)||[]).length,1);
   assert.ok(html.includes(`rel="canonical" href="${config.siteUrl}${route.path}"`));
   assert.ok(html.includes(route.noindex?'content="noindex, follow"':'content="index, follow, max-image-preview:large"'));
-  assert.equal(html.includes('src="/app.js'),!['confidentialite','apropos','mentions','conjugaison','verbe'].includes(route.page));
+  assert.equal(html.includes('src="/app.js'),!['confidentialite','apropos','mentions','conjugaison','verbe','palier'].includes(route.page));
   assert.ok(html.includes('/styles.css?v=')&&html.includes('/design-tokens.css?v=')&&html.includes('/design-system.css?v='),'Ressources CSS versionnées');
   assert.ok(!html.includes('Conjugo'));
   const graph=JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
   assert.equal(graph['@graph'][0].name,'Verbox');
-  if(route.page==='lecon')assert.ok(graph['@graph'].some(x=>x['@type']==='BreadcrumbList'));
+  const webPage=graph['@graph'].find(x=>x['@type']==='WebPage');
+  assert.match(webPage.dateModified,/^\d{4}-\d{2}-\d{2}$/);
+  if(route.level||['lecon','conjugaison','verbe'].includes(route.page)||route.path==='/'){
+   assert.ok(webPage.educationalLevel,`educationalLevel manquant sur ${route.path}`);
+   assert.ok(webPage.teaches,`teaches manquant sur ${route.path}`);
+  }
+  if(route.page==='lecon'||route.page==='palier')assert.ok(graph['@graph'].some(x=>x['@type']==='BreadcrumbList'));
   for(const [,href]of html.matchAll(/href="(\/[^"#]*)"/g)){
    const path=new URL(href,'https://verbox.example').pathname;
    assert.ok(routes.some(r=>r.path===path)||publicFiles.includes(path.slice(1)),`Lien interne inconnu : ${path}`);
@@ -75,7 +81,7 @@ test('HTML accessible : langue, identifiants uniques, titres, tableaux et script
 });
 
 test('Pages statiques sans application : boutons inactifs, compteur 0 et boîtes de dialogue absents',()=>{
- const staticPages=['404','confidentialite','apropos','mentions','conjugaison','verbe'];
+ const staticPages=['404','confidentialite','apropos','mentions','conjugaison','verbe','palier'];
  for(const route of [...routes.filter(r=>staticPages.includes(r.page)),notFound]){
   const html=renderPage(template,route,config,true);
   assert.ok(!html.includes('id="sound-toggle"'),`Bouton son présent sur page statique : ${route.path}`);
@@ -123,7 +129,8 @@ test('Indexation et maillage : exclusions explicites et pages à trois clics au 
  const distance=new Map([['/',0]]),queue=['/'];
  while(queue.length){const page=queue.shift();for(const target of links.get(page)||[]){if(links.has(target)&&!distance.has(target)){distance.set(target,distance.get(page)+1);queue.push(target);}}}
  for(const route of routes)assert.ok(distance.get(route.path)<=3,route.path);
- assert.ok(!xml.includes('<lastmod>'),'Aucune date de build artificielle');
+ assert.equal((xml.match(/<lastmod>/g)||[]).length,routes.filter(r=>!r.noindex).length,'Indicateur lastmod pour toutes les pages indexables');
+ for(const [,d]of xml.matchAll(/<lastmod>([^<]+)<\/lastmod>/g))assert.match(d,/^\d{4}-\d{2}-\d{2}$/);
  assert.ok(sitemap(config,[{...routes[0],updated:'2026-09-19'}]).includes('<lastmod>2026-09-19</lastmod>'));
  for(const updated of ['2026-02-30','demain','2026-99-01'])assert.throws(()=>sitemap(config,[{...routes[0],updated}]));
 });
@@ -217,5 +224,18 @@ test('versionImports : ajoute et met à jour ?v= sur tous les imports relatifs',
  assert.equal(versionImports("import './core.js';", '1.1.0'), "import './core.js?v=1.1.0';");
  assert.equal(versionImports("export * from './core.js';", '1.1.0'), "export * from './core.js?v=1.1.0';");
  assert.equal(versionImports("import { a } from './core.js?v=1.0.0';", '1.1.0'), "import { a } from './core.js?v=1.1.0';");
+});
+test('Pages niveau × temps : 13 pages dédiées avec exercices, corrigé HTML et métadonnées pédagogiques',()=>{
+ const palierRoutes=routes.filter(r=>r.page==='palier');
+ assert.equal(palierRoutes.length,13,'Exactement 13 combinaisons niveau × temps');
+ for(const route of palierRoutes){
+  const html=renderPage(template,route,config,true);
+  assert.ok(html.includes('class="exercise-list"'),`Liste d'exercices manquante sur ${route.path}`);
+  assert.equal((html.match(/<li class="exercise-card">/g)||[]).length,5,`5 exercices attendus sur ${route.path}`);
+  assert.equal((html.match(/<details class="exercise-solution">/g)||[]).length,5,`5 corrigés attendus sur ${route.path}`);
+  assert.ok(html.includes('Règle d’accord :'),`Explications grammaticales manquantes sur ${route.path}`);
+  assert.ok(html.includes('<table class="memo-table">'),`Tableaux mémo manquants sur ${route.path}`);
+  assert.ok(html.includes(`Lancer les exercices interactifs (${route.level})`),`Bouton interactif manquant sur ${route.path}`);
+ }
 });
 

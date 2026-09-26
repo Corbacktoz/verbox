@@ -1,5 +1,7 @@
-import { routes, renderContent, lessonPath } from './site-content.js';
+import { execSync } from 'node:child_process';
+import { routes, renderContent, lessonPath, levelPath } from './site-content.js';
 import { audienceConfig } from './audience-config.js';
+import { tenses, levelTenses, allowedVerbs } from './core.js';
 export { routes };
 export const escapeHtml = value => String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function publicOrigin(value, required=false) {
@@ -8,14 +10,99 @@ export function publicOrigin(value, required=false) {
  if(url.protocol!=='https:'||url.username||url.password||url.pathname!=='/'||url.search||url.hash||!url.hostname.includes('.')||url.hostname.endsWith('.localhost')||url.hostname==='localhost'||/^[\d.]+$/.test(url.hostname)||url.hostname.startsWith('['))throw new Error('SITE_URL doit être une origine HTTPS publique, sans chemin, paramètres ou identifiants.');
  return url.origin;
 }
+
+let cachedFileDates = null;
+export function getFileCommitDates() {
+ if(cachedFileDates) return cachedFileDates;
+ cachedFileDates = {};
+ try {
+  const out = execSync('git log -n 100 --name-only --format=COMMIT_%cs', {
+   encoding: 'utf8',
+   stdio: ['ignore', 'pipe', 'ignore']
+  });
+  let curDate = null;
+  for(const rawLine of out.split(/\r?\n/)){
+   const line = rawLine.trim();
+   if(line.startsWith('COMMIT_')){
+    curDate = line.slice(7).trim();
+   }else if(line && curDate && !cachedFileDates[line]){
+    cachedFileDates[line] = curDate;
+   }
+  }
+ } catch {}
+ return cachedFileDates;
+}
+
+export function getRouteUpdated(route, fileDates = getFileCommitDates()) {
+ if (route.updated) return route.updated;
+ const routeFiles = {
+  accueil: route.level ? ['level-content.js','site-content.js'] : ['index.html','site-content.js','app.js'],
+  palier: ['level-content.js','site-content.js','core.js'],
+  lecon: ['site-content.js','core.js'],
+  fiches: ['site-content.js'],
+  conjugaison: ['verb-content.js','site-content.js'],
+  verbe: ['verb-content.js','core.js'],
+  apropos: ['project-content.js'],
+  mentions: ['project-content.js'],
+  confidentialite: ['privacy-content.js','audience-config.js'],
+  aide: ['site-content.js'],
+  progres: ['progress-storage.js','site-content.js']
+ };
+ const files = routeFiles[route.page] || ['site-content.js'];
+ const dates = files.map(f => fileDates[f]).filter(Boolean);
+ if (dates.length) return dates.sort().reverse()[0];
+ return fileDates['site-content.js'] || '2026-09-26';
+}
+
 export function metadata(route, config, production=false) {
  const origin=publicOrigin(config.siteUrl,production);
  const indexable=production&&!route.noindex;
  const canonical=origin?`${origin}${route.path}`:'';
- const graph=origin?[{'@type':'WebSite','@id':`${origin}/#website`,url:`${origin}/`,name:'Verbox',inLanguage:'fr-FR'}, {'@type':'WebPage','@id':`${canonical}#webpage`,url:canonical,name:route.title,description:route.description,inLanguage:'fr-FR',isPartOf:{'@id':`${origin}/#website`}}]:[];
+ const dateModified=route.updated || getRouteUpdated(route);
+
+ const webPage={
+  '@type':'WebPage',
+  '@id':`${canonical}#webpage`,
+  url:canonical,
+  name:route.title,
+  description:route.description,
+  inLanguage:'fr-FR',
+  isPartOf:{'@id':`${origin}/#website`},
+  dateModified
+ };
+
+ if(route.page==='palier'||(route.level&&route.tense)){
+  webPage.educationalLevel=route.level;
+  webPage.teaches=`Conjugaison de ${tenses[route.tense].name.toLowerCase()} en ${route.level} : règles, verbes au programme et exercices corrigés`;
+ }else if(route.level){
+  webPage.educationalLevel=route.level;
+  webPage.teaches=`Conjugaison du programme de ${route.level} : temps de l’indicatif et verbes usuels`;
+ }else if(route.page==='lecon'&&route.tense){
+  const levels=Object.keys(levelTenses).filter(l=>levelTenses[l].includes(route.tense));
+  webPage.educationalLevel=levels.join(', ');
+  webPage.teaches=`Règles et conjugaisons de ${tenses[route.tense].name.toLowerCase()} à l’école primaire`;
+ }else if(route.page==='verbe'&&route.verb){
+  const isCe2=allowedVerbs('CE2').some(v=>v.infinitive===route.verb);
+  webPage.educationalLevel=isCe2?'CE2, CM1, CM2':'CM1, CM2';
+  webPage.teaches=`Conjugaison du verbe ${route.verb} aux temps de l’école primaire`;
+ }else if(route.page==='conjugaison'||route.page==='fiches'){
+  webPage.educationalLevel='CE2, CM1, CM2';
+  webPage.teaches='Tableaux et fiches de conjugaison des verbes du programme primaire';
+ }else if(route.path==='/'){
+  webPage.educationalLevel='CE2, CM1, CM2';
+  webPage.teaches='Conjugaison française du CE2 au CM2 : exercices corrigés et fiches mémo';
+ }
+
+ const graph=origin?[
+  {'@type':'WebSite','@id':`${origin}/#website`,url:`${origin}/`,name:'Verbox',inLanguage:'fr-FR'},
+  webPage
+ ]:[];
+
  if(origin&&route.page==='lecon')graph.push({'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'Accueil',item:`${origin}/`},{'@type':'ListItem',position:2,name:'Fiches de conjugaison',item:`${origin}/fiches/`},{'@type':'ListItem',position:3,name:route.title.split(' | ')[0],item:`${origin}${lessonPath(route.tense)}`} ]});
+ if(origin&&route.page==='palier')graph.push({'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'Accueil',item:`${origin}/`},{'@type':'ListItem',position:2,name:`Conjugaison ${route.level}`,item:`${origin}${levelPath(route.level)}`},{'@type':'ListItem',position:3,name:tenses[route.tense].name,item:canonical}]});
  if(origin&&['conjugaison','verbe'].includes(route.page))graph.push({'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'Accueil',item:`${origin}/`},{'@type':'ListItem',position:2,name:'Conjugaison',item:`${origin}/conjugaison/`},...(route.verb?[{'@type':'ListItem',position:3,name:route.verb,item:canonical}]:[])]});
- if(origin&&(route.level||['aide','apropos','mentions'].includes(route.page)))graph.push({'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'Accueil',item:`${origin}/`},{'@type':'ListItem',position:2,name:route.title.split(' | ')[0],item:canonical}]});
+ if(origin&&(route.level||['aide','apropos','mentions'].includes(route.page))&&route.page!=='palier')graph.push({'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'Accueil',item:`${origin}/`},{'@type':'ListItem',position:2,name:route.title.split(' | ')[0],item:canonical}]});
+
  return `<title>${escapeHtml(route.title)}</title>
   <meta name="description" content="${escapeHtml(route.description)}">
   <meta name="robots" content="${indexable?'index, follow, max-image-preview:large':'noindex, follow'}">
@@ -34,11 +121,12 @@ export function metadata(route, config, production=false) {
   ${route.path==='/'&&config.bingSiteVerification?`<meta name="msvalidate.01" content="${escapeHtml(config.bingSiteVerification)}">`:''}
   ${graph.length?`<script type="application/ld+json">${JSON.stringify({'@context':'https://schema.org','@graph':graph}).replace(/</g,'\\u003c')}</script>`:''}`;
 }
+
 export function renderPage(template,route,config,production=false) {
  const audience=audienceConfig(config);
  const clientConfig=production&&audience ? {...audience,pageUrl:route.noindex?null:publicOrigin(config.siteUrl,true)+route.path,pageTitle:route.title} : null;
  template=template.replace('<!-- AUDIENCE_CONFIG -->',`<script type="application/json" id="audience-config">${JSON.stringify(clientConfig).replace(/</g,'\\u003c')}</script>`);
- if(['404','confidentialite','apropos','mentions','conjugaison','verbe'].includes(route.page)) {
+ if(['404','confidentialite','apropos','mentions','conjugaison','verbe','palier'].includes(route.page)) {
   template=template.replace(/<script type="module" src="\/app\.js(?:\?[^"]*)?"><\/script>/,'')
    .replace(/<div class="topbar-right">[\s\S]*?<\/div>/,'<div class="topbar-right"></div>')
    .replace(/<dialog id="quiz-dialog"[\s\S]*?<\/dialog>/,'')
@@ -46,24 +134,28 @@ export function renderPage(template,route,config,production=false) {
    .replace(/<div id="toast"[\s\S]*?<\/div>/,'')
    .replace('class="nav-item active"','class="nav-item"');
  }
- const navPage=route.page==='accueil'?'accueil':route.page==='progres'?'progres':(route.page==='fiches'||route.page==='lecon')?'fiches':null;
+ const navPage=route.page==='accueil'||route.page==='palier'?'accueil':route.page==='progres'?'progres':(route.page==='fiches'||route.page==='lecon')?'fiches':null;
  if(navPage)template=template.replace(`class="nav-item" data-page="${navPage}"`,`class="nav-item active" aria-current="page" data-page="${navPage}"`);
- const pageLabels={accueil:'Mon entraînement',progres:'Mes progrès',fiches:'Mes fiches mémo',aide:'Comment ça marche ?',lecon:'Fiches de conjugaison',apropos:'À propos',mentions:'Mentions légales',confidentialite:'Confidentialité',conjugaison:'Conjugaison',verbe:'Conjugaison'};
+ const pageLabels={accueil:'Mon entraînement',progres:'Mes progrès',fiches:'Mes fiches mémo',aide:'Comment ça marche ?',lecon:'Fiches de conjugaison',apropos:'À propos',mentions:'Mentions légales',confidentialite:'Confidentialité',conjugaison:'Conjugaison',verbe:'Conjugaison',palier:'Mon entraînement'};
  if(pageLabels[route.page])template=template.replace('id="page-label">Mon entraînement',`id="page-label">${pageLabels[route.page]}`);
  return template.replace(/<!-- SEO_START -->[\s\S]*?<!-- SEO_END -->/,`<!-- SEO_START -->${metadata(route,config,production)}<!-- SEO_END -->`)
  .replace('<body>',`<body data-page="${route.page}" data-level="${route.level||''}" data-tense="${route.tense||''}">`)
  .replace(/<main id="main" tabindex="-1">[\s\S]*?<\/main>/,`<main id="main" tabindex="-1">${renderContent(route,config)}</main>`)
  .replace(/[ \t]+$/gm,'');
 }
+
 export function robots(config,production=false) {
  const origin=publicOrigin(config.siteUrl,production);
  // noindex pages remain crawlable so crawlers can read their directive.
  return `User-agent: *\nAllow: /\n${production?`\nSitemap: ${origin}/sitemap.xml\n`:'# Aperçu local : pages noindex, aucun sitemap public.\n'}`;
 }
+
 export function sitemap(config, pageRoutes=routes) {
  const origin=publicOrigin(config.siteUrl,true);
+ const fileDates = getFileCommitDates();
  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${pageRoutes.filter(r=>!r.noindex).map(r=>{
-  if(r.updated&&(!/^\d{4}-\d{2}-\d{2}$/.test(r.updated)||!Number.isFinite(Date.parse(r.updated))||new Date(r.updated).toISOString().slice(0,10)!==r.updated))throw new Error('Date de mise à jour de route invalide.');
-  return `  <url><loc>${escapeHtml(origin+r.path)}</loc>${r.updated?`<lastmod>${r.updated}</lastmod>`:''}</url>`;
+  const updated = r.updated || getRouteUpdated(r, fileDates);
+  if(updated&&(!/^\d{4}-\d{2}-\d{2}$/.test(updated)||!Number.isFinite(Date.parse(updated))||new Date(updated).toISOString().slice(0,10)!==updated))throw new Error('Date de mise à jour de route invalide.');
+  return `  <url><loc>${escapeHtml(origin+r.path)}</loc>${updated?`<lastmod>${updated}</lastmod>`:''}</url>`;
  }).join('\n')}\n</urlset>\n`;
 }

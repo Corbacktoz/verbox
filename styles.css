@@ -855,6 +855,45 @@ main{
   border-radius:var(--radius-xs);
   font-size:var(--font-size-caption);
   margin-bottom:var(--space-4)}
+.exercise-list{
+  list-style:none;
+  padding:0;
+  display:grid;
+  gap:var(--space-4);
+  margin-top:var(--space-4)}
+.exercise-card{
+  background:var(--color-surface);
+  border:1px solid var(--color-surface-soft);
+  border-radius:var(--radius-md);
+  padding:var(--space-4)}
+.exercise-card h3{
+  font-size:var(--font-size-subtitle);
+  color:var(--color-ink);
+  margin-bottom:var(--space-2)}
+.exercise-prompt{
+  font-size:var(--font-size-body);
+  font-weight:600;
+  color:var(--color-ink);
+  margin-bottom:var(--space-3)}
+.exercise-solution{
+  background:var(--color-surface-warm);
+  border:1px solid var(--color-surface-soft);
+  border-radius:var(--radius-sm);
+  padding:var(--space-3)}
+.exercise-solution summary{
+  cursor:pointer;
+  font-weight:700;
+  font-size:var(--font-size-small);
+  color:var(--color-brand)}
+.exercise-answer{
+  margin-top:var(--space-2);
+  font-size:var(--font-size-small);
+  color:var(--color-ink)}
+.exercise-rule{
+  margin-top:var(--space-2);
+  font-size:var(--font-size-small);
+  color:var(--color-subtle);
+  line-height:1.6}
 dialog{
   width:min(640px,calc(100% - 32px));
   max-height:calc(100dvh - 36px);
