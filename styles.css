@@ -682,7 +682,9 @@ main{
 .text-link{
   border:0;
   background:none;
-  color:var(--color-border-strong);
+  color:var(--color-brand);
+  text-decoration:underline;
+  cursor:pointer;
   font-size:var(--font-size-caption);
   padding:var(--space-1)}
 .badge-list{

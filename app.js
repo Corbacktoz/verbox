@@ -30,7 +30,7 @@ const paths = {
 function icon(name) { return `<svg viewBox="0 0 24 24" aria-hidden="true">${paths[name] || paths.star}</svg>`; }
 document.querySelectorAll('[data-icon]').forEach(el => el.innerHTML=icon(el.dataset.icon));
 
-let audioCtx = null, soundEnabled = true;
+let audioCtx = null, soundEnabled = false;
 try { const s = localStorage.getItem('verbox-sound'); if (s !== null) soundEnabled = s === 'true'; } catch {}
 function getAudioContext() {
   if (!audioCtx && typeof window !== 'undefined') {
@@ -349,8 +349,14 @@ function answerQuestion(chosen) {
   const chosenTrimmed=chosen.trim();
   const acceptedAnswer=correct?(q.validAnswers?.find(v=>v.toLowerCase()===chosenTrimmed.toLowerCase())||q.answer):q.answer;
   dialog.querySelector('#feedback').innerHTML='<div class="feedback '+(correct?'':'incorrect')+'"><strong>'+(correct?'Bien joué ! +'+points+' points'+(quiz.streak>=3?' · Quelle série !':''):'On apprend ensemble !')+'</strong><div>'+(correct?'Tu as bien trouvé : <b>'+phrase(q.person,acceptedAnswer)+'</b> <button type="button" class="speech-btn small" id="speak-answer" aria-label="Écouter la conjugaison" title="Écouter">'+icon('speaker')+'</button>.':'La bonne réponse : <b>'+phrase(q.person,q.answer)+'</b> <button type="button" class="speech-btn small" id="speak-answer" aria-label="Écouter la bonne réponse" title="Écouter">'+icon('speaker')+'</button>.')+'</div>'+(correct?'':'<div>Cette conjugaison reviendra pour t’aider à la retenir.</div>')+'<small>'+reminder+'</small></div>';
-  dialog.querySelector('#speak-answer')?.addEventListener('click',()=>speak(phrase(q.person,acceptedAnswer)));
-  const next=dialog.querySelector('#next-question');next.hidden=false;next.innerHTML=(quiz.index===9?'Voir mon résultat':'Suivant')+' '+icon('arrow');next.focus();
+  const next=dialog.querySelector('#next-question');next.hidden=false;next.innerHTML=(quiz.index===9?'Voir mon résultat':'Suivant')+' '+icon('arrow');
+  const feedbackEl=dialog.querySelector('#feedback');
+  if(feedbackEl){
+    feedbackEl.focus();
+    feedbackEl.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();nextQuestion();}},{once:true});
+  }else{
+    next.focus();
+  }
 }
 function nextQuestion() { if(!quiz?.locked||quiz.finished)return;if(quiz.index===9){finishQuiz(false);return;}quiz.index++;quiz.locked=false;withViewTransition(()=>renderQuestion()); }
 function finishQuiz(timedOut) {

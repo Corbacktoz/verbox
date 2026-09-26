@@ -19,7 +19,8 @@ test('Pages publiques : HTML lisible, titre unique, canonique et données struct
   assert.equal((html.match(/<title>/g)||[]).length,1);
   assert.ok(html.includes(`rel="canonical" href="${config.siteUrl}${route.path}"`));
   assert.ok(html.includes(route.noindex?'content="noindex, follow"':'content="index, follow, max-image-preview:large"'));
-  assert.equal(html.includes('src="/app.js"'),!['confidentialite','apropos','mentions','conjugaison','verbe'].includes(route.page));
+  assert.equal(html.includes('src="/app.js'),!['confidentialite','apropos','mentions','conjugaison','verbe'].includes(route.page));
+  assert.ok(html.includes('/styles.css?v=')&&html.includes('/design-tokens.css?v=')&&html.includes('/design-system.css?v='),'Ressources CSS versionnées');
   assert.ok(!html.includes('Conjugo'));
   const graph=JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
   assert.equal(graph['@graph'][0].name,'Verbox');
@@ -129,7 +130,7 @@ test('Indexation et maillage : exclusions explicites et pages à trois clics au 
 test('Métadonnées échappées et page 404 sans application interactive',()=>{
  const html=metadata({...routes[0],title:'Un "titre" <script>'},config,true);
  assert.ok(html.includes('&quot;titre&quot; &lt;script&gt;'));
- const missing=renderPage(template,notFound,config,true);assert.ok(missing.includes('noindex'));assert.ok(!missing.includes('src="/app.js"'));
+ const missing=renderPage(template,notFound,config,true);assert.ok(missing.includes('noindex'));assert.ok(!missing.includes('src="/app.js'));
 });
 test('Aperçu de partage au format PNG 1200 × 630',async()=>{
  const png=await readFile(new URL('./assets/og-verbox.png',import.meta.url));

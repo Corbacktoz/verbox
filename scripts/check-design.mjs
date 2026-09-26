@@ -30,17 +30,19 @@ for(const [,name,body]of themeBlocks){
   }
   allThemes[name]=themeColors;
 }
-const quizContrastPairs=[
+const themeContrastPairs=[
   ['ink','surface','Answer button normal'],
   ['ink','surface-soft','Answer button hover'],
   ['muted','surface','Answer button disabled'],
   ['ink','success-soft','Answer correct / feedback text'],
   ['ink','error-soft','Answer wrong / feedback text'],
   ['success','success-soft','Feedback success title'],
-  ['error','error-soft','Feedback error title']
+  ['error','error-soft','Feedback error title'],
+  ['brand','surface','Links and brand elements on surface'],
+  ['brand','canvas','Links and brand elements on canvas']
 ];
 for(const [themeName,colors]of Object.entries(allThemes)){
-  for(const [fg,bg,label]of quizContrastPairs){
+  for(const [fg,bg,label]of themeContrastPairs){
     if(!colors[fg]||!colors[bg])continue;
     const a=luminance(colors[fg]),b=luminance(colors[bg]);
     const ratio=(Math.max(a,b)+.05)/(Math.min(a,b)+.05);

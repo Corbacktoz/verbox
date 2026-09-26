@@ -39,7 +39,7 @@ export function renderPage(template,route,config,production=false) {
  const clientConfig=production&&audience ? {...audience,pageUrl:route.noindex?null:publicOrigin(config.siteUrl,true)+route.path,pageTitle:route.title} : null;
  template=template.replace('<!-- AUDIENCE_CONFIG -->',`<script type="application/json" id="audience-config">${JSON.stringify(clientConfig).replace(/</g,'\\u003c')}</script>`);
  if(['404','confidentialite','apropos','mentions','conjugaison','verbe'].includes(route.page)) {
-  template=template.replace(/<script type="module" src="\/app\.js"><\/script>/,'')
+  template=template.replace(/<script type="module" src="\/app\.js(?:\?[^"]*)?"><\/script>/,'')
    .replace(/<div class="topbar-right">[\s\S]*?<\/div>/,'<div class="topbar-right"></div>')
    .replace(/<dialog id="quiz-dialog"[\s\S]*?<\/dialog>/,'')
    .replace(/<dialog id="wardrobe-dialog"[\s\S]*?<\/dialog>/,'')
