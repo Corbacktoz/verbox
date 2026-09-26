@@ -14,10 +14,10 @@ Ouvrir http://localhost:5173. Le serveur local n’écoute que sur cet ordinateu
 
 ## Fonctionnalités
 
-- CE2 : présent, imparfait, futur ; verbes en -er (dont -ger, -cer, -yer), aller, être et avoir.
-- CM1 : ajout de verbes fréquents (venir, partir, mettre...) et du passé composé avec avoir et être.
-- CM2 : ajout du passé simple et du plus-que-parfait avec avoir et être.
-- 48 verbes et 1 728 combinaisons verbe / temps / personne au total : 558 accessibles en CE2, 1 152 en CM1, 1 728 en CM2 (les niveaux partagent leur contenu).
+- CE2 : présent, imparfait, futur, passé composé ; verbes en -er (dont -ger, -cer, -yer), être, avoir et les 8 verbes irréguliers du 3e groupe (faire, aller, dire, venir, pouvoir, voir, vouloir, prendre).
+- CM1 : ajout des verbes du 2e groupe (finir, choisir...) et des autres verbes fréquents (partir, mettre...).
+- CM2 : ajout du passé simple et du plus-que-parfait avec avoir et être sur tous les verbes.
+- 48 verbes et 1 728 combinaisons verbe / temps / personne au total : 912 accessibles en CE2, 1 152 en CM1, 1 728 en CM2 (les niveaux partagent leur contenu).
 - Séries de dix questions : QCM, conjugaison écrite, phrase à compléter et erreur à corriger, au choix ou mélangés.
 - Nouveautés prioritaires et jusqu’à trois révisions par série tant que de nouvelles conjugaisons restent ; mode dédié aux révisions et mélange des temps.
 - Révisions prévues après 1, 3, 7, 14 et 30 jours de réussite successive ; les erreurs reviennent dès une prochaine séance. Une fois les nouveautés épuisées, les questions les moins récemment vues complètent les séries.

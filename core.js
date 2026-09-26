@@ -42,7 +42,12 @@ verbs.push(
   {infinitive:'venir',participle:'venu',auxiliary:'être',present:forms('viens|viens|vient|venons|venez|viennent'),imparfait:forms('venais|venais|venait|venions|veniez|venaient'),futur:forms('viendrai|viendras|viendra|viendrons|viendrez|viendront'),simple:forms('vins|vins|vint|vînmes|vîntes|vinrent')},
   {infinitive:'partir',participle:'parti',auxiliary:'être',present:forms('pars|pars|part|partons|partez|partent'),imparfait:forms('partais|partais|partait|partions|partiez|partaient'),futur:forms('partirai|partiras|partira|partirons|partirez|partiront'),simple:forms('partis|partis|partit|partîmes|partîtes|partirent')}
 );
-export function allowedVerbs(level) { return level==='CE2'?verbs.filter(v=>v.infinitive.endsWith('er')||['être','avoir'].includes(v.infinitive)):verbs; }
+export const ce2IrregularVerbs = ['faire', 'aller', 'dire', 'venir', 'pouvoir', 'voir', 'vouloir', 'prendre'];
+export function allowedVerbs(level) {
+  return level === 'CE2'
+    ? verbs.filter(v => v.infinitive.endsWith('er') || ['être', 'avoir', ...ce2IrregularVerbs].includes(v.infinitive))
+    : verbs;
+}
 for (const verb of verbs) {
   verb.group = verb.infinitive === 'aller' ? 3 : (verb.infinitive.endsWith('er') ? 1 : (verb.infinitive.endsWith('ir') && verb.present[3].endsWith('issons') ? 2 : 3));
   if (verb.auxiliary === 'être') {
@@ -120,7 +125,7 @@ export function getVerbTip(verb, tense) {
   return tenses[tense].tip;
 }
 
-export const levelTenses = { CE2:['present','imparfait','futur'], CM1:['present','imparfait','futur','compose'], CM2:Object.keys(tenses) };
+export const levelTenses = { CE2:['present','imparfait','futur','compose'], CM1:['present','imparfait','futur','compose'], CM2:Object.keys(tenses) };
 export function shuffle(items, random = Math.random) {
   const copy = [...items];
   for (let i=copy.length-1; i>0; i--) { const j=Math.floor(random()*(i+1)); [copy[i],copy[j]]=[copy[j],copy[i]]; }

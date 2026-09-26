@@ -225,9 +225,10 @@ test('versionImports : ajoute et met à jour ?v= sur tous les imports relatifs',
  assert.equal(versionImports("export * from './core.js';", '1.1.0'), "export * from './core.js?v=1.1.0';");
  assert.equal(versionImports("import { a } from './core.js?v=1.0.0';", '1.1.0'), "import { a } from './core.js?v=1.1.0';");
 });
-test('Pages niveau × temps : 13 pages dédiées avec exercices, corrigé HTML et métadonnées pédagogiques',()=>{
+test('Pages niveau × temps : 14 pages dédiées avec exercices, corrigé HTML et métadonnées pédagogiques',()=>{
  const palierRoutes=routes.filter(r=>r.page==='palier');
- assert.equal(palierRoutes.length,13,'Exactement 13 combinaisons niveau × temps');
+ assert.equal(palierRoutes.length,14,'Exactement 14 combinaisons niveau × temps');
+ assert.ok(palierRoutes.some(r=>r.path==='/conjugaison-ce2/passe-compose/'),'Route /conjugaison-ce2/passe-compose/ présente');
  for(const route of palierRoutes){
   const html=renderPage(template,route,config,true);
   assert.ok(html.includes('class="exercise-list"'),`Liste d'exercices manquante sur ${route.path}`);

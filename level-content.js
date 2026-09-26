@@ -9,9 +9,9 @@ export const verbCategories = [
 
 export const levelGuides = {
   CE2:{
-    method:'Repère le sujet : qui fait l’action ? Remplace un prénom par il ou elle, puis plusieurs prénoms par ils ou elles. Choisis ensuite le temps. Les verbes en -er (chanter, jouer, manger...), être, avoir et aller font partie de ton entraînement. Lis chaque correction pour comprendre la terminaison.',
-    goal:'Distinguer maintenant, autrefois et demain',
-    practice:'Travaille d’abord un seul temps. Quand tu te sens à l’aise, compare le présent et le futur du même verbe : nous chantons, nous chanterons. Pour être, avoir et aller, apprends les formes avec leur sujet : nous sommes, vous avez, ils vont. Fais attention aux verbes comme manger (nous mangeons) et commencer (nous commençons).',
+    method:'Repère le sujet : qui fait l’action ? Remplace un prénom par il ou elle, puis plusieurs prénoms par ils ou elles. Choisis ensuite le temps. Les verbes en -er (chanter, jouer, manger...), être, avoir et les 8 verbes irréguliers du programme (faire, aller, dire, venir, pouvoir, voir, vouloir, prendre) font partie de ton entraînement. Lis chaque correction pour comprendre la terminaison.',
+    goal:'Distinguer le présent, l’imparfait, le futur et le passé composé',
+    practice:'Travaille d’abord un seul temps. Quand tu te sens à l’aise, compare le présent, le futur et le passé composé du même verbe : nous chantons, nous chanterons, nous avons chanté. Pour être, avoir et les verbes irréguliers (faire, aller, dire, venir, pouvoir, voir, vouloir, prendre), apprends les formes avec leur sujet : nous sommes, vous avez, ils vont, nous faisons, ils disent, je peux, tu veux, il prend. Fais attention aux verbes comme manger (nous mangeons) et commencer (nous commençons).',
     mistakes:[
       {verb:'manger',tense:'present',index:3,wrong:'nous mangons',correct:'nous mangeons',why:'Avec nous au présent, les verbes en -ger prennent un e après le g pour garder le son [ʒ].'},
       {verb:'aller',tense:'present',index:5,wrong:'ils vonts',correct:'ils vont',why:'La forme ils vont s’écrit sans s à la fin.'},
@@ -19,9 +19,9 @@ export const levelGuides = {
     ]
   },
   CM1:{
-    method:'Tu retrouves les temps simples du CE2 et tu ajoutes le passé composé. Travaille les verbes fréquents du 2e et du 3e groupe : finir, choisir, ainsi qu’aller, venir, partir, mettre, prendre, faire et dire. Observe les formes qui changent : nous prenons mais ils prennent ; je mets, nous mettons.',
+    method:'Tu retrouves les temps simples du CE2 et tu consolides le passé composé. Travaille les verbes fréquents du 2e et du 3e groupe : finir, choisir, ainsi qu’aller, venir, partir, mettre, prendre, faire, dire, voir, vouloir et pouvoir. Observe les formes qui changent : nous prenons mais ils prennent ; je mets, nous mettons ; nous voyons, je veux, je peux.',
     goal:'Passer d’un temps simple à un temps composé',
-    practice:'Au passé composé, cherche l’auxiliaire et le participe passé. Utilise l’auxiliaire avoir (j’ai fini, nous avons chanté, il a mis) et l’auxiliaire être pour les verbes de déplacement comme aller, venir et partir (je suis allé, elle est venue, ils sont partis). Avec être, le participe passé s’accorde avec le sujet.',
+    practice:'Au passé composé, cherche l’auxiliaire et le participe passé. Utilise l’auxiliaire avoir (j’ai fini, nous avons chanté, il a mis, nous avons vu, ils ont voulu) et l’auxiliaire être pour les verbes de déplacement comme aller, venir et partir (je suis allé, elle est venue, ils sont partis). Avec être, le participe passé s’accorde avec le sujet.',
     mistakes:[
       {verb:'finir',tense:'present',index:3,wrong:'nous finons',correct:'nous finissons',why:'Finir appartient au deuxième groupe : nous finissons s’écrit avec -iss-.'},
       {verb:'mettre',tense:'present',index:0,wrong:'je met',correct:'je mets',why:'Au présent, mettre prend un s avec je : je mets.'},
@@ -71,6 +71,13 @@ export const levelTenseExercises = {
       { prompt: 'Nous (avoir) beaucoup de temps pour lire.', answer: 'Nous aurons beaucoup de temps pour lire.', verb: 'avoir', form: 'aurons', rule: 'Au futur simple, avoir prend le radical aur- et la terminaison -ons avec nous : nous aurons.' },
       { prompt: 'Vous (aller) au gymnase vendredi après-midi.', answer: 'Vous irez au gymnase vendredi après-midi.', verb: 'aller', form: 'irez', rule: 'Au futur simple, aller prend le radical ir- et la terminaison -ez avec vous : vous irez.' },
       { prompt: 'Les enfants (manger) une part de gâteau.', answer: 'Les enfants mangeront une part de gâteau.', verb: 'manger', form: 'mangeront', rule: 'Avec un sujet au pluriel (les enfants = ils), la terminaison du futur est -ont : mangeront.' }
+    ],
+    compose: [
+      { prompt: 'Hier, nous (jouer) à cache-cache dans la cour.', answer: 'Hier, nous avons joué à cache-cache dans la cour.', verb: 'jouer', form: 'avons joué', rule: 'Au passé composé, les verbes en -er se forment avec l’auxiliaire avoir au présent (avons) et le participe passé en -é (joué).' },
+      { prompt: 'Tu (avoir) une très bonne idée pour le dessin.', answer: 'Tu as eu une très bonne idée pour le dessin.', verb: 'avoir', form: 'as eu', rule: 'Le passé composé du verbe avoir se forme avec l’auxiliaire avoir au présent (tu as) et le participe passé eu.' },
+      { prompt: 'J’ (faire) tous mes exercices de lecture.', answer: 'J’ai fait tous mes exercices de lecture.', verb: 'faire', form: 'ai fait', rule: 'Le participe passé de faire est fait (avec un t muet) : avec j’, on écrit j’ai fait.' },
+      { prompt: 'Les élèves (aller) à la bibliothèque de quartier.', answer: 'Les élèves sont allés à la bibliothèque de quartier.', verb: 'aller', form: 'sont allés', rule: 'Le verbe aller se conjugue avec l’auxiliaire être : avec le sujet au pluriel (les élèves = ils), le participe passé prend un s (sont allés).' },
+      { prompt: 'Elle (prendre) son parapluie avant de sortir.', answer: 'Elle a pris son parapluie avant de sortir.', verb: 'prendre', form: 'a pris', rule: 'Le participe passé de prendre est pris (avec un s muet que l’on entend au féminin prise) : elle a pris.' }
     ]
   },
   CM1: {
@@ -171,9 +178,9 @@ export function renderLevelTense(level, tense, { lessonPath, levelPath, levelTen
   const t = tenses[tense];
   const exercises = levelTenseExercises[level]?.[tense] || [];
   const representativeVerbs = level === 'CE2'
-    ? ['être', 'avoir', 'aller', 'chanter', 'manger']
+    ? ['être', 'avoir', 'faire', 'aller', 'dire', 'prendre']
     : (level === 'CM1'
-      ? ['être', 'avoir', 'aller', 'finir', 'prendre', 'mettre']
+      ? ['être', 'avoir', 'aller', 'finir', 'prendre', 'mettre', 'voir', 'pouvoir']
       : ['être', 'avoir', 'aller', 'finir', 'prendre', 'faire', 'mettre', 'voir']);
   const verbObjects = representativeVerbs.map(inf => verbs.find(v => v.infinitive === inf)).filter(Boolean);
   const siblingTenses = levelTenses[level].filter(k => k !== tense);

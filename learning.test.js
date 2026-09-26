@@ -4,9 +4,9 @@ import {verbs} from './core.js';
 import {questionPool,makeSession,recordAnswer,sanitizeLearning,isCorrect,learningStats,journey,dailyMission,formats} from './learning.js';
 const now=1800000000000,day=86400000;
 const random=()=>0.37;
-test('48 verbes, 558 / 1152 / 1728 conjugaisons et phrases complètes',()=>{
+test('48 verbes, 912 / 1152 / 1728 conjugaisons et phrases complètes',()=>{
  assert.equal(verbs.length,48);
- for(const [level,count]of [['CE2',558],['CM1',1152],['CM2',1728]]){
+ for(const [level,count]of [['CE2',912],['CM1',1152],['CM2',1728]]){
   const pool=questionPool(level);assert.equal(pool.length,count);assert.equal(new Set(pool.map(q=>q.id)).size,count);
   assert.ok(pool.every(q=>q.complement&&q.answer));
  }
