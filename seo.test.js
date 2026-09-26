@@ -4,7 +4,7 @@ import {readFile,mkdtemp,rm,realpath,readdir} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {buildSite} from './scripts/build-site.mjs';
+import {buildSite,versionImports} from './scripts/build-site.mjs';
 import {routes,renderPage,metadata,robots,sitemap,publicOrigin} from './seo.js';
 import {createServer,notFound,publicFiles} from './server.js';
 const template=await readFile(new URL('./index.html',import.meta.url),'utf8');
@@ -176,6 +176,14 @@ test('Build statique : vraies pages, ressources et fichiers robots dans une sort
   for(const file of publicFiles){
    assert.ok((await readFile(path.join(dir,file))).length>0,`Fichier public manquant dans dist/ : ${file}`);
   }
+  const pkg=JSON.parse(await readFile(new URL('./package.json',import.meta.url),'utf8'));
+  for(const file of publicFiles.filter(f=>f.endsWith('.js'))){
+   const code=await readFile(path.join(dir,file),'utf8');
+   for(const [,imp]of code.matchAll(/\b(?:from|import)\s+['"](\.\/[^'"]+)['"]/g)){
+    assert.ok(imp.endsWith(`?v=${pkg.version}`),`Import interne non versionné dans dist/${file} : ${imp}`);
+   }
+  }
+  assert.ok((await readFile(path.join(dir,'app.js'),'utf8')).includes(`from './core.js?v=${pkg.version}'`));
   assert.equal(await readFile(path.join(dir,'CNAME'),'utf8'),'verbox.example\n');
   assert.equal(await readFile(path.join(dir,'.nojekyll'),'utf8'),'');
   assert.ok((await readFile(path.join(dir,'404.html'),'utf8')).includes('noindex'));
@@ -204,3 +212,10 @@ test('HTTP : routes directes, redirections, vrais 404, robots et HEAD',async()=>
   const privateFile=await fetch(origin+'/site.config.json');assert.equal(privateFile.status,404);
  }finally{await new Promise(resolve=>server.close(resolve));}
 });
+test('versionImports : ajoute et met à jour ?v= sur tous les imports relatifs',()=>{
+ assert.equal(versionImports("import { a } from './core.js';", '1.1.0'), "import { a } from './core.js?v=1.1.0';");
+ assert.equal(versionImports("import './core.js';", '1.1.0'), "import './core.js?v=1.1.0';");
+ assert.equal(versionImports("export * from './core.js';", '1.1.0'), "export * from './core.js?v=1.1.0';");
+ assert.equal(versionImports("import { a } from './core.js?v=1.0.0';", '1.1.0'), "import { a } from './core.js?v=1.1.0';");
+});
+

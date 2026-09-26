@@ -4,12 +4,29 @@ import {loadConfig,publicFiles,notFound} from '../server.js';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 const root=new URL('../',import.meta.url);
+export function versionImports(code, version) {
+ return code
+  .replace(/\b(from|import)(\s+)(['"])(\.\/[^'"]+?\.js)(?:\?[^'"]*)?\3/g, `$1$2$3$4?v=${version}$3`)
+  .replace(/\bimport\(\s*(['"])(\.\/[^'"]+?\.js)(?:\?[^'"]*)?\1\s*\)/g, `import($1$2?v=${version}$1)`);
+}
 export async function buildSite({config,output=new URL('dist/',root)}) {
 publicOrigin(config.siteUrl,true);
-const template=await readFile(new URL('index.html',root),'utf8');
+const pkg=JSON.parse(await readFile(new URL('package.json',root),'utf8'));
+const version=pkg.version;
+const rawTemplate=await readFile(new URL('index.html',root),'utf8');
+const template=rawTemplate.replace(/(href|src)="(\/[^"?#]+\.(?:css|js))(?:\?[^"]*)?"/g,`$1="$2?v=${version}"`);
 await mkdir(output,{recursive:true});
 for(const route of routes){const dir=new URL(`.${route.path}`,output);await mkdir(dir,{recursive:true});await writeFile(new URL('index.html',dir),renderPage(template,route,config,true));}
-for(const file of publicFiles){const target=new URL(file,output);await mkdir(new URL('.',target),{recursive:true});await copyFile(new URL(file,root),target);}
+for(const file of publicFiles){
+ const target=new URL(file,output);
+ await mkdir(new URL('.',target),{recursive:true});
+ if(file.endsWith('.js')){
+  const content=await readFile(new URL(file,root),'utf8');
+  await writeFile(target,versionImports(content,version));
+ }else{
+  await copyFile(new URL(file,root),target);
+ }
+}
 await writeFile(new URL('404.html',output),renderPage(template,notFound,config,true));
 await writeFile(new URL('robots.txt',output),robots(config,true));
 await writeFile(new URL('sitemap.xml',output),sitemap(config));
