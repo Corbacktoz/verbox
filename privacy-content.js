@@ -3,7 +3,7 @@ const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<'
 
 export function renderPrivacy(config = {}) {
   const audience = audienceConfig(config);
-  const contact = config.privacy?.contactEmail || 'corback.inc@gmail.com';
+  const contact = config.privacy?.contactEmail || 'jcbelinjc@gmail.com';
   const editor = config.privacy?.editorName;
   return `<div class="greeting"><div><h1>Confidentialité et statistiques</h1><p>Apprendre sans compte, avec des explications claires sur les données.</p></div></div>
   <article class="content-panel privacy-content">

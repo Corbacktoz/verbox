@@ -18,7 +18,7 @@ Si vous découvrez une faille de sécurité ou une faiblesse potentielle dans Ve
 Veuillez utiliser l'un des canaux confidentiels suivants :
 
 1. **Signalement privé GitHub** : Via l'onglet **Security** → **Advisories** → **Report a vulnerability** de ce dépôt (si activé dans le dépôt : *Settings → Code security and analysis → Private vulnerability reporting*).
-2. **Email direct (toujours actif)** : Écrivez à `corback.inc@gmail.com` avec pour objet :
+2. **Email direct (toujours actif)** : Écrivez à `jcbelinjc@gmail.com` avec pour objet :
    `[Sécurité Verbox] Signalement de vulnérabilité`
 
 ### Informations utiles à inclure dans votre rapport :

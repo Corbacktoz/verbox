@@ -95,4 +95,4 @@ Le code source est mis à disposition à des fins de consultation, d’apprentis
 
 ## Sécurité
 
-Pour signaler une vulnérabilité de manière confidentielle et responsable, veuillez consulter notre politique de sécurité dans [SECURITY.md](SECURITY.md) ou écrire directement à `corback.inc@gmail.com`.
+Pour signaler une vulnérabilité de manière confidentielle et responsable, veuillez consulter notre politique de sécurité dans [SECURITY.md](SECURITY.md) ou écrire directement à `jcbelinjc@gmail.com`.
